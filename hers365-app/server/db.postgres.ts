@@ -1,0 +1,20 @@
+// PostgreSQL database configuration for production (50K users)
+// Run: npm run db:push after switching
+
+import { pgTable, serial, text, integer, real, boolean, timestamp, json, varchar, boolean } from 'drizzle-orm/pg-core';
+import { drizzle } from 'drizzle-orm/node-postgres';
+import { Pool } from 'pg';
+
+// Connection pool for PostgreSQL
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || 'postgres://localhost:5432/hers365',
+  max: 100, // Max connections for 50K users
+  min: 10,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
+});
+
+export const db = drizzle(pool, { schema: require('./schema').schema });
+
+// Export for use in routes
+export { pool };

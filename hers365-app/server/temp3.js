@@ -1,0 +1,1 @@
+import { readFileSync, writeFileSync } from 'fs'; const content = readFileSync('schema.ts', 'utf8'); const newContent = content.replace(/boolean\('([']+)'\)\.default\(([)]+)\)/g, "integer('$1', { mode: 'boolean' }).default($2)"); writeFileSync('schema.ts', newContent);  

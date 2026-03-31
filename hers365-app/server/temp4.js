@@ -1,0 +1,1 @@
+import { readFileSync, writeFileSync } from 'fs'; const content = readFileSync('schema.ts', 'utf8'); const newContent = content.replace(/timestamp\('([']+)'\)\.defaultNow\(\)/g, "integer('$1', { mode: 'timestamp' }).default(sql``CURRENT_TIMESTAMP``)"); writeFileSync('schema.ts', newContent);  
