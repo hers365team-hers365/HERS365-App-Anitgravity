@@ -1,5 +1,5 @@
 // @ts-nocheck - Drizzle ORM type compatibility
-import { sqliteTable, text, integer, real, json, timestamp } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
 
 export const players = sqliteTable('players', {
@@ -99,7 +99,7 @@ export const playerBadges = sqliteTable('player_badges', {
   id: integer('id').primaryKey(),
   playerId: integer('player_id').references(() => players.id),
   badgeId: integer('badge_id').references(() => badges.id),
-  earnedAt: integer('earned_at', { mode: 'timestamp' }).defaultNow(),
+  earnedAt: integer('earned_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
 });
 
 export const challenges = sqliteTable('challenges', {
@@ -115,7 +115,7 @@ export const playerChallenges = sqliteTable('player_challenges', {
   playerId: integer('player_id').references(() => players.id),
   challengeId: integer('challenge_id').references(() => challenges.id),
   progress: integer('progress').default(0),
-  completed: boolean('completed').default(false),
+  completed: integer('completed', { mode: 'boolean' }).default(false),
 });
 
 export const posts = sqliteTable('posts', {
@@ -167,7 +167,7 @@ export const dealTasks = sqliteTable('deal_tasks', {
   id: integer('id').primaryKey(),
   applicationId: integer('application_id').references(() => dealApplications.id),
   taskDescription: text('task_description'),
-  completed: boolean('completed').default(false),
+  completed: integer('completed', { mode: 'boolean' }).default(false),
 });
 
 export const earningsTracking = sqliteTable('earnings_tracking', {
@@ -189,7 +189,7 @@ export const mentorshipConnections = sqliteTable('mentorship_connections', {
   id: integer('id').primaryKey(),
   playerId: integer('player_id').references(() => players.id),
   mentorName: text('mentor_name'),
-  matchedAt: integer('matched_at', { mode: 'timestamp' }).defaultNow(),
+  matchedAt: integer('matched_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
 });
 
 export const playerHighlights = sqliteTable('player_highlights', {
@@ -230,9 +230,9 @@ export const coaches = sqliteTable('coaches', {
   name: text('name'),
   university: text('university'),
   division: text('division'),
-  recruitingPositions: text('recruiting_positions', { mode: 'json' }),
-  recruitingStates: text('recruiting_states', { mode: 'json' }),
-  verifiedStatus: boolean('verified_status').default(false),
+  recruitingPositions: text('recruiting_positions'),
+  recruitingStates: text('recruiting_states'),
+  verifiedStatus: integer('verified_status', { mode: 'boolean' }).default(false),
 });
 
 export const adminUsers = sqliteTable('admin_users', {
@@ -261,7 +261,7 @@ export const schedules = sqliteTable('schedules', {
   id: integer('id').primaryKey(),
   teamId: integer('team_id').references(() => teams.id),
   opponentName: text('opponent_name'),
-  date: timestamp('date'),
+  date: text('date'),
   result: text('result'),
 });
 
@@ -284,7 +284,7 @@ export const notifications = sqliteTable('notifications', {
   playerId: integer('player_id').references(() => players.id),
   type: text('type'), // like, comment, follow, mention, coach_interest
   actorName: text('actor_name'),
-  read: boolean('read').default(false),
+  read: integer('read', { mode: 'boolean' }).default(false),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
 });
 
@@ -307,7 +307,7 @@ export const botConversations = sqliteTable('bot_conversations', {
 export const trainingPlans = sqliteTable('training_plans', {
   id: integer('id').primaryKey(),
   playerId: integer('player_id').references(() => players.id),
-  weeklySchedule: json('weekly_schedule'),
+  weeklySchedule: text('weekly_schedule'),
   goals: text('goals'),
 });
 
@@ -330,28 +330,28 @@ export const coachFeedback = sqliteTable('coach_feedback', {
   id: integer('id').primaryKey(),
   coachId: integer('coach_id').references(() => coaches.id),
   playerId: integer('player_id').references(() => players.id),
-  skillRatings: json('skill_ratings'),
+  skillRatings: text('skill_ratings'),
   notes: text('notes'),
 });
 
 export const events = sqliteTable('events', {
   id: integer('id').primaryKey(),
   name: text('name').notNull(),
-  date: timestamp('date').notNull(),
+  date: text('date').notNull(),
   location: text('location').notNull(),
-  registrationDeadline: timestamp('registration_deadline'),
+  registrationDeadline: text('registration_deadline'),
   participantCount: integer('participant_count').default(0),
   capacity: integer('capacity').default(0),
   price: integer('price').default(0), // in cents
   description: text('description'),
-  upcoming: boolean('upcoming').default(true),
+  upcoming: integer('upcoming', { mode: 'boolean' }).default(true),
 });
 
 export const eventRegistrations = sqliteTable('event_registrations', {
   id: integer('id').primaryKey(),
   eventId: integer('event_id').references(() => events.id),
   playerId: integer('player_id').references(() => players.id),
-  checkedIn: boolean('checked_in').default(false),
+  checkedIn: integer('checked_in', { mode: 'boolean' }).default(false),
 });
 
 export const eventLeaderboards = sqliteTable('event_leaderboards', {
@@ -359,7 +359,7 @@ export const eventLeaderboards = sqliteTable('event_leaderboards', {
   eventId: integer('event_id').references(() => events.id),
   playerId: integer('player_id').references(() => players.id),
   rank: integer('rank'),
-  performanceMetrics: json('performance_metrics'),
+  performanceMetrics: text('performance_metrics'),
 });
 
 export const brandPartnerships = sqliteTable('brand_partnerships', {
@@ -389,8 +389,8 @@ export const payments = sqliteTable('payments', {
   parentPhone: text('parent_phone'),
   notes: text('notes'),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: timestamp('updated_at').defaultNow(),
-  paidAt: timestamp('paid_at'),
+  updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
+  paidAt: text('paid_at'),
 });
 
 export const paymentMethods = sqliteTable('payment_methods', {
@@ -402,7 +402,7 @@ export const paymentMethods = sqliteTable('payment_methods', {
   expiryMonth: integer('expiry_month'),
   expiryYear: integer('expiry_year'),
   stripePaymentMethodId: text('stripe_payment_method_id'),
-  isDefault: boolean('is_default').default(false),
+  isDefault: integer('is_default', { mode: 'boolean' }).default(false),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
 });
 
@@ -414,10 +414,10 @@ export const invoices = sqliteTable('invoices', {
   tax: integer('tax').default(0),
   total: integer('total').notNull(),
   status: text('status').default('draft'), // draft, sent, paid, void
-  dueDate: timestamp('due_date'),
-  paidAt: timestamp('paid_at'),
+  dueDate: text('due_date'),
+  paidAt: text('paid_at'),
   description: text('description'),
-  lineItems: json('line_items'),
+  lineItems: text('line_items'),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
 });
 export const messageRequests = sqliteTable('message_requests', {
@@ -428,7 +428,7 @@ export const messageRequests = sqliteTable('message_requests', {
   status: text('status').default('pending'), // pending, approved, rejected, sent
   parentId: integer('parent_id').references(() => parents.id),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: timestamp('updated_at').defaultNow(),
+  updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
 });
 
 export const athleteRankings = sqliteTable('athlete_rankings', {
@@ -447,18 +447,18 @@ export const athleteRankings = sqliteTable('athlete_rankings', {
   zybekScore: real('zybek_score'),
   usaTalentIdScore: real('usa_talent_id_score'),
   // Data source tracking
-  dataSources: json('data_sources').default([]),
+  dataSources: text('data_sources'),
   // Last update from each source
-  maxPrepsLastUpdate: timestamp('max_preps_last_update'),
-  zybekLastUpdate: timestamp('zybek_last_update'),
-  usaTalentIdLastUpdate: timestamp('usa_talent_id_last_update'),
-  combineLastUpdate: timestamp('combine_last_update'),
+  maxPrepsLastUpdate: text('max_preps_last_update'),
+  zybekLastUpdate: text('zybek_last_update'),
+  usaTalentIdLastUpdate: text('usa_talent_id_last_update'),
+  combineLastUpdate: text('combine_last_update'),
   // Verification status
-  maxPrepsVerified: boolean('max_preps_verified').default(false),
-  zybekVerified: boolean('zybek_verified').default(false),
-  usaTalentIdVerified: boolean('usa_talent_id_verified').default(false),
-  combineVerified: boolean('combine_verified').default(false),
-  updatedAt: timestamp('updated_at').defaultNow(),
+  maxPrepsVerified: integer('max_preps_verified', { mode: 'boolean' }).default(false),
+  zybekVerified: integer('zybek_verified', { mode: 'boolean' }).default(false),
+  usaTalentIdVerified: integer('usa_talent_id_verified', { mode: 'boolean' }).default(false),
+  combineVerified: integer('combine_verified', { mode: 'boolean' }).default(false),
+  updatedAt: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
 });
 
 export const coachProspects = sqliteTable('coach_prospects', {
@@ -470,14 +470,25 @@ export const coachProspects = sqliteTable('coach_prospects', {
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
 });
 
+export const messages = sqliteTable('messages', {
+  id: integer('id').primaryKey(),
+  coachId: integer('coach_id').references(() => coaches.id),
+  athleteId: integer('athlete_id').references(() => players.id),
+  senderId: integer('sender_id'), // coach or athlete id
+  senderType: text('sender_type'), // 'coach' or 'athlete'
+  content: text('content').notNull(),
+  read: integer('read', { mode: 'boolean' }).default(false),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
+});
+
 export const scholarships = sqliteTable('scholarships', {
   id: integer('id').primaryKey(),
   name: text('name').notNull(),
   amount: integer('amount').notNull(),
-  deadline: timestamp('deadline').notNull(),
+  deadline: text('deadline').notNull(),
   requirements: text('requirements'),
   category: text('category'),
-  eligibleStates: json('eligible_states').default(['ALL']),
+  eligibleStates: text('eligible_states'),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
 });
 
@@ -485,16 +496,16 @@ export const savedScholarships = sqliteTable('saved_scholarships', {
   id: integer('id').primaryKey(),
   playerId: integer('player_id').references(() => players.id),
   scholarshipId: integer('scholarship_id').references(() => scholarships.id),
-  savedAt: timestamp('saved_at').defaultNow(),
+  savedAt: text('saved_at').default(sql`CURRENT_TIMESTAMP`),
 });
 export const faqs = sqliteTable('faqs', {
   id: integer('id').primaryKey(),
   question: text('question').notNull(),
   answer: text('answer').notNull(),
   category: text('category').default('General'),
-  isPublic: boolean('is_public').default(true),
+  isPublic: integer('is_public', { mode: 'boolean' }).default(true),
   askedCount: integer('asked_count').default(1),
-  lastAskedAt: timestamp('last_asked_at').defaultNow(),
+  lastAskedAt: text('last_asked_at').default(sql`CURRENT_TIMESTAMP`),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
 });
 
@@ -503,8 +514,8 @@ export const supportInteractions = sqliteTable('support_interactions', {
   playerId: integer('player_id').references(() => players.id),
   question: text('question').notNull(),
   aiResponse: text('ai_response').notNull(),
-  wasHelpful: boolean('was_helpful').default(true),
-  tags: json('tags'), // Array of keywords
+  wasHelpful: integer('was_helpful', { mode: 'boolean' }).default(true),
+  tags: text('tags'), // Array of keywords
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`CURRENT_TIMESTAMP`),
 });
 

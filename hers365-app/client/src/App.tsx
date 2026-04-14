@@ -49,6 +49,7 @@ import { CoachScoutingBoard } from './pages/coach/CoachScoutingBoard';
 import { CoachMessages } from './pages/coach/CoachMessages';
 import { CoachRoster } from './pages/coach/CoachRoster';
 import { CoachPlayerProfile } from './pages/coach/CoachPlayerProfile';
+import { CoachAnalytics } from './pages/coach/CoachAnalytics';
 import { CoachSignup } from './pages/coach/CoachSignup';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -139,6 +140,7 @@ function App() {
               <Route path="/coach/dashboard" element={<CoachDashboard />} />
               <Route path="/coach/search" element={<CoachPlayerSearch />} />
               <Route path="/coach/board" element={<CoachScoutingBoard />} />
+              <Route path="/coach/analytics" element={<CoachAnalytics />} />
               <Route path="/coach/messages" element={<CoachMessages />} />
               <Route path="/coach/roster" element={<CoachRoster />} />
               <Route path="/coach/player/:id" element={<CoachPlayerProfile />} />

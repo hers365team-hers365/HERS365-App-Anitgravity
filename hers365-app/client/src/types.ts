@@ -175,6 +175,136 @@ export interface Payment {
   paidAt?: Date;
 }
 
+// Coach Portal types
+export interface PlayerSearchResult {
+  id: number;
+  name: string;
+  position: string;
+  state: string;
+  city: string;
+  school: string;
+  gradYear: number;
+  height: string;
+  weight: number;
+  gpa: number;
+  breakoutScore: number;
+  stars: number;
+  archetype: string;
+  stats: GameStats;
+  combineStats: CombineStats;
+  highlights: number;
+  verified: boolean;
+  offers: number;
+  committed: boolean;
+  nilPoints: number;
+  avatarUrl?: string;
+}
+
+export interface PlayerProfile {
+  id: number;
+  name: string;
+  position: string;
+  state: string;
+  city: string;
+  school: string;
+  gradYear: number;
+  height: string;
+  weight: number;
+  gpa: number;
+  breakoutScore: number;
+  stars: number;
+  archetype: string;
+  email: string;
+  phone: string;
+  parentContact: string;
+  highlights: Highlight[];
+  stats: GameStats;
+  combineStats: CombineStats;
+  academicProfile: AcademicProfile;
+  offers: string[];
+  committed: boolean;
+  nilPoints: number;
+}
+
+export interface Highlight {
+  title: string;
+  url: string;
+  locked: boolean;
+}
+
+export interface AcademicProfile {
+  gpa: number;
+  act?: number;
+  sat?: number;
+  major: string;
+}
+
+export interface ScoutingBoardItem {
+  id: number;
+  playerId: number;
+  tier: 'top-target' | 'watching' | 'offered';
+  savedAt: string;
+  player?: PlayerSearchResult;
+}
+
+export interface CoachMessage {
+  id: number;
+  coachName: string;
+  coachEmail: string;
+  playerId: number;
+  message: string;
+  sentAt: string;
+  read?: boolean;
+}
+
+export interface CoachAnalytics {
+  boardCount: number;
+  messagesSent: number;
+  profileViews: number;
+  topStates: string[];
+  recentlyViewed: number[];
+  searchQueries: number;
+  playersContacted: number;
+  offersExtended: number;
+  commitsReceived: number;
+}
+
+export interface PlayerClip {
+  id: number;
+  playerId: number;
+  name: string;
+  position: string;
+  school: string;
+  state: string;
+  gradYear: number;
+  stars: number;
+  breakoutScore: number;
+  clipUrl: string;
+  thumbnailUrl: string;
+  title: string;
+  views: number;
+  likes: number;
+  shares: number;
+  measurements: {
+    height: string;
+    weight: string;
+    fortyYard: string;
+    vertical: string;
+    broadJump: string;
+  };
+  stats: {
+    receptions?: number;
+    receivingYards?: number;
+    receivingTouchdowns?: number;
+    rushingYards?: number;
+    rushingTouchdowns?: number;
+    passingYards?: number;
+    passingTouchdowns?: number;
+  };
+  verified: boolean;
+  createdAt: string;
+}
+
 // API Response types
 export interface ApiResponse<T> {
   data?: T;
