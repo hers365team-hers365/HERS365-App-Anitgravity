@@ -87,7 +87,7 @@ export type SessionData = {
     location?: string;
     isActive: boolean;
     expiresAt: Date;
-    lastActivityAt: Date;
+    lastActivityAt: Date | null;
 };
 /**
  * Create a new user session

@@ -3,7 +3,7 @@
  * OpenTelemetry integration for microservices observability
  */
 
-import { NodeTracerProvider } from '@opentelemetry/sdk-node';
+import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
 import { SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base';
 import { JaegerExporter } from '@opentelemetry/exporter-jaeger';
 import { registerInstrumentations } from '@opentelemetry/instrumentation';
@@ -19,7 +19,7 @@ import { logger } from './logger';
 export class TracingService {
   private static instance: TracingService;
   private tracer: Tracer;
-  private provider: NodeTracerProvider;
+  private provider!: NodeTracerProvider;
 
   private constructor() {
     this.initializeTracing();
@@ -35,15 +35,7 @@ export class TracingService {
 
   private initializeTracing(): void {
     // Create tracer provider
-    this.provider = new NodeTracerProvider({
-      resource: {
-        serviceName: 'hers365-microservices',
-        serviceVersion: '1.0.0',
-        attributes: {
-          'service.instance.id': process.env.SERVICE_INSTANCE_ID || 'unknown'
-        }
-      }
-    });
+    this.provider = new NodeTracerProvider();
 
     // Configure Jaeger exporter
     const jaegerExporter = new JaegerExporter({
@@ -53,18 +45,12 @@ export class TracingService {
     });
 
     // Add span processor
-    this.provider.addSpanProcessor(new SimpleSpanProcessor(jaegerExporter));
+    this.provider.addSpanProcessor(new SimpleSpanProcessor(jaegerExporter as any) as any);
 
     // Register instrumentations
     registerInstrumentations({
       instrumentations: [
-        new HttpInstrumentation({
-          ignoreIncomingPaths: ['/health', '/ready', '/metrics'],
-          ignoreOutgoingUrls: [
-            /localhost:14268/, // Jaeger endpoint
-            /169\.254\.169\.254/ // AWS metadata service
-          ]
-        }),
+        new HttpInstrumentation(),
         new ExpressInstrumentation({
           ignoreLayers: ['/health', '/ready', '/metrics']
         }),
@@ -102,7 +88,6 @@ export class TracingService {
     attributes?: Record<string, string | number | boolean>;
   }): Span {
     const span = this.tracer.startSpan(name, {
-      parent: options?.parentSpan,
       attributes: {
         'service.name': 'hers365-microservices',
         ...options?.attributes

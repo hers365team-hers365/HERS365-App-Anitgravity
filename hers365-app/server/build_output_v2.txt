@@ -1,0 +1,401 @@
+
+> server@1.0.0 build
+> tsc
+
+compliance-monitoring.ts(120,40): error TS1442: Expected '=' for property initializer.
+compliance-monitoring.ts(122,6): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(123,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(128,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(128,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(128,36): error TS1005: ';' expected.
+compliance-monitoring.ts(128,50): error TS1109: Expression expected.
+compliance-monitoring.ts(130,11): error TS1005: ',' expected.
+compliance-monitoring.ts(130,15): error TS1005: ':' expected.
+compliance-monitoring.ts(130,38): error TS1005: ',' expected.
+compliance-monitoring.ts(133,11): error TS1005: ',' expected.
+compliance-monitoring.ts(133,15): error TS1005: ':' expected.
+compliance-monitoring.ts(133,37): error TS1005: ',' expected.
+compliance-monitoring.ts(136,11): error TS1005: ',' expected.
+compliance-monitoring.ts(136,15): error TS1005: ':' expected.
+compliance-monitoring.ts(136,36): error TS1005: ',' expected.
+compliance-monitoring.ts(139,11): error TS1005: ',' expected.
+compliance-monitoring.ts(139,15): error TS1005: ':' expected.
+compliance-monitoring.ts(139,41): error TS1005: ',' expected.
+compliance-monitoring.ts(144,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(144,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(144,39): error TS1005: ';' expected.
+compliance-monitoring.ts(144,66): error TS1011: An element access expression should take an argument.
+compliance-monitoring.ts(145,11): error TS1005: ':' expected.
+compliance-monitoring.ts(145,18): error TS1005: ',' expected.
+compliance-monitoring.ts(145,36): error TS1005: ',' expected.
+compliance-monitoring.ts(145,37): error TS1109: Expression expected.
+compliance-monitoring.ts(145,39): error TS1005: ':' expected.
+compliance-monitoring.ts(145,43): error TS1005: ',' expected.
+compliance-monitoring.ts(148,11): error TS1005: ':' expected.
+compliance-monitoring.ts(148,62): error TS1005: ',' expected.
+compliance-monitoring.ts(149,11): error TS1005: ':' expected.
+compliance-monitoring.ts(149,100): error TS1005: ',' expected.
+compliance-monitoring.ts(151,12): error TS1005: ',' expected.
+compliance-monitoring.ts(159,7): error TS1005: ',' expected.
+compliance-monitoring.ts(162,11): error TS1005: ':' expected.
+compliance-monitoring.ts(162,78): error TS1005: ',' expected.
+compliance-monitoring.ts(163,12): error TS1005: ',' expected.
+compliance-monitoring.ts(170,7): error TS1005: ',' expected.
+compliance-monitoring.ts(173,11): error TS1005: ':' expected.
+compliance-monitoring.ts(173,76): error TS1005: ',' expected.
+compliance-monitoring.ts(174,12): error TS1005: ',' expected.
+compliance-monitoring.ts(182,7): error TS1005: ',' expected.
+compliance-monitoring.ts(184,12): error TS1005: ':' expected.
+compliance-monitoring.ts(184,19): error TS1005: ',' expected.
+compliance-monitoring.ts(187,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(187,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(187,39): error TS1005: ';' expected.
+compliance-monitoring.ts(187,66): error TS1011: An element access expression should take an argument.
+compliance-monitoring.ts(188,11): error TS1005: ':' expected.
+compliance-monitoring.ts(188,18): error TS1005: ',' expected.
+compliance-monitoring.ts(188,36): error TS1005: ',' expected.
+compliance-monitoring.ts(188,37): error TS1109: Expression expected.
+compliance-monitoring.ts(188,39): error TS1005: ':' expected.
+compliance-monitoring.ts(188,43): error TS1005: ',' expected.
+compliance-monitoring.ts(191,11): error TS1005: ':' expected.
+compliance-monitoring.ts(191,56): error TS1005: ',' expected.
+compliance-monitoring.ts(192,11): error TS1005: ':' expected.
+compliance-monitoring.ts(192,79): error TS1005: ',' expected.
+compliance-monitoring.ts(194,12): error TS1005: ',' expected.
+compliance-monitoring.ts(202,7): error TS1005: ',' expected.
+compliance-monitoring.ts(205,11): error TS1005: ':' expected.
+compliance-monitoring.ts(205,78): error TS1005: ',' expected.
+compliance-monitoring.ts(206,12): error TS1005: ',' expected.
+compliance-monitoring.ts(213,7): error TS1005: ',' expected.
+compliance-monitoring.ts(216,11): error TS1005: ':' expected.
+compliance-monitoring.ts(216,76): error TS1005: ',' expected.
+compliance-monitoring.ts(217,12): error TS1005: ',' expected.
+compliance-monitoring.ts(224,7): error TS1005: ',' expected.
+compliance-monitoring.ts(226,12): error TS1005: ':' expected.
+compliance-monitoring.ts(226,19): error TS1005: ',' expected.
+compliance-monitoring.ts(229,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(229,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(229,38): error TS1005: ';' expected.
+compliance-monitoring.ts(229,65): error TS1011: An element access expression should take an argument.
+compliance-monitoring.ts(230,11): error TS1005: ':' expected.
+compliance-monitoring.ts(230,18): error TS1005: ',' expected.
+compliance-monitoring.ts(230,36): error TS1005: ',' expected.
+compliance-monitoring.ts(230,37): error TS1109: Expression expected.
+compliance-monitoring.ts(230,39): error TS1005: ':' expected.
+compliance-monitoring.ts(230,43): error TS1005: ',' expected.
+compliance-monitoring.ts(233,11): error TS1005: ':' expected.
+compliance-monitoring.ts(233,78): error TS1005: ',' expected.
+compliance-monitoring.ts(234,11): error TS1005: ':' expected.
+compliance-monitoring.ts(234,54): error TS1005: ',' expected.
+compliance-monitoring.ts(236,12): error TS1005: ',' expected.
+compliance-monitoring.ts(244,7): error TS1005: ',' expected.
+compliance-monitoring.ts(247,11): error TS1005: ':' expected.
+compliance-monitoring.ts(247,82): error TS1005: ',' expected.
+compliance-monitoring.ts(248,12): error TS1005: ',' expected.
+compliance-monitoring.ts(256,7): error TS1005: ',' expected.
+compliance-monitoring.ts(259,11): error TS1005: ':' expected.
+compliance-monitoring.ts(259,74): error TS1005: ',' expected.
+compliance-monitoring.ts(260,12): error TS1005: ',' expected.
+compliance-monitoring.ts(268,7): error TS1005: ',' expected.
+compliance-monitoring.ts(271,11): error TS1005: ':' expected.
+compliance-monitoring.ts(271,82): error TS1005: ',' expected.
+compliance-monitoring.ts(272,12): error TS1005: ',' expected.
+compliance-monitoring.ts(280,7): error TS1005: ',' expected.
+compliance-monitoring.ts(282,12): error TS1005: ':' expected.
+compliance-monitoring.ts(282,19): error TS1005: ',' expected.
+compliance-monitoring.ts(285,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(285,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(285,47): error TS1005: ';' expected.
+compliance-monitoring.ts(285,74): error TS1011: An element access expression should take an argument.
+compliance-monitoring.ts(286,11): error TS1005: ':' expected.
+compliance-monitoring.ts(286,18): error TS1005: ',' expected.
+compliance-monitoring.ts(286,36): error TS1005: ',' expected.
+compliance-monitoring.ts(286,37): error TS1109: Expression expected.
+compliance-monitoring.ts(286,39): error TS1005: ':' expected.
+compliance-monitoring.ts(286,43): error TS1005: ',' expected.
+compliance-monitoring.ts(289,11): error TS1005: ':' expected.
+compliance-monitoring.ts(289,78): error TS1005: ',' expected.
+compliance-monitoring.ts(290,12): error TS1005: ',' expected.
+compliance-monitoring.ts(298,7): error TS1005: ',' expected.
+compliance-monitoring.ts(301,11): error TS1005: ':' expected.
+compliance-monitoring.ts(301,84): error TS1005: ',' expected.
+compliance-monitoring.ts(302,12): error TS1005: ',' expected.
+compliance-monitoring.ts(310,7): error TS1005: ',' expected.
+compliance-monitoring.ts(312,12): error TS1005: ':' expected.
+compliance-monitoring.ts(312,19): error TS1005: ',' expected.
+compliance-monitoring.ts(315,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(315,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(315,47): error TS1005: ';' expected.
+compliance-monitoring.ts(315,74): error TS1011: An element access expression should take an argument.
+compliance-monitoring.ts(316,11): error TS1005: ':' expected.
+compliance-monitoring.ts(316,18): error TS1005: ',' expected.
+compliance-monitoring.ts(316,36): error TS1005: ',' expected.
+compliance-monitoring.ts(316,37): error TS1109: Expression expected.
+compliance-monitoring.ts(316,39): error TS1005: ':' expected.
+compliance-monitoring.ts(316,43): error TS1005: ',' expected.
+compliance-monitoring.ts(319,11): error TS1005: ':' expected.
+compliance-monitoring.ts(319,86): error TS1005: ',' expected.
+compliance-monitoring.ts(320,12): error TS1005: ',' expected.
+compliance-monitoring.ts(328,7): error TS1005: ',' expected.
+compliance-monitoring.ts(331,11): error TS1005: ':' expected.
+compliance-monitoring.ts(331,70): error TS1005: ',' expected.
+compliance-monitoring.ts(332,12): error TS1005: ',' expected.
+compliance-monitoring.ts(340,7): error TS1005: ',' expected.
+compliance-monitoring.ts(342,12): error TS1005: ':' expected.
+compliance-monitoring.ts(342,19): error TS1005: ',' expected.
+compliance-monitoring.ts(345,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(345,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(345,46): error TS1005: ';' expected.
+compliance-monitoring.ts(345,73): error TS1011: An element access expression should take an argument.
+compliance-monitoring.ts(346,11): error TS1005: ':' expected.
+compliance-monitoring.ts(346,18): error TS1005: ',' expected.
+compliance-monitoring.ts(346,36): error TS1005: ',' expected.
+compliance-monitoring.ts(346,37): error TS1109: Expression expected.
+compliance-monitoring.ts(346,39): error TS1005: ':' expected.
+compliance-monitoring.ts(346,43): error TS1005: ',' expected.
+compliance-monitoring.ts(349,11): error TS1005: ':' expected.
+compliance-monitoring.ts(349,68): error TS1005: ',' expected.
+compliance-monitoring.ts(350,12): error TS1005: ',' expected.
+compliance-monitoring.ts(358,7): error TS1005: ',' expected.
+compliance-monitoring.ts(361,11): error TS1005: ':' expected.
+compliance-monitoring.ts(361,76): error TS1005: ',' expected.
+compliance-monitoring.ts(362,12): error TS1005: ',' expected.
+compliance-monitoring.ts(370,7): error TS1005: ',' expected.
+compliance-monitoring.ts(372,12): error TS1005: ':' expected.
+compliance-monitoring.ts(372,19): error TS1005: ',' expected.
+compliance-monitoring.ts(377,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(377,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(377,39): error TS1005: ';' expected.
+compliance-monitoring.ts(377,53): error TS1109: Expression expected.
+compliance-monitoring.ts(379,11): error TS1005: ':' expected.
+compliance-monitoring.ts(379,65): error TS1005: ',' expected.
+compliance-monitoring.ts(381,25): error TS1005: ',' expected.
+compliance-monitoring.ts(381,36): error TS1005: ',' expected.
+compliance-monitoring.ts(381,38): error TS1136: Property assignment expected.
+compliance-monitoring.ts(406,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(408,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(408,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(408,38): error TS1005: ';' expected.
+compliance-monitoring.ts(408,52): error TS1109: Expression expected.
+compliance-monitoring.ts(410,11): error TS1005: ':' expected.
+compliance-monitoring.ts(410,63): error TS1005: ',' expected.
+compliance-monitoring.ts(412,25): error TS1005: ',' expected.
+compliance-monitoring.ts(412,29): error TS1005: ';' expected.
+compliance-monitoring.ts(424,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(426,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(426,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(426,37): error TS1005: ';' expected.
+compliance-monitoring.ts(426,51): error TS1109: Expression expected.
+compliance-monitoring.ts(428,11): error TS1005: ':' expected.
+compliance-monitoring.ts(428,62): error TS1005: ',' expected.
+compliance-monitoring.ts(430,26): error TS1005: ',' expected.
+compliance-monitoring.ts(430,29): error TS1005: ';' expected.
+compliance-monitoring.ts(442,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(444,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(444,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(444,42): error TS1005: ';' expected.
+compliance-monitoring.ts(444,56): error TS1109: Expression expected.
+compliance-monitoring.ts(446,11): error TS1005: ':' expected.
+compliance-monitoring.ts(446,62): error TS1005: ',' expected.
+compliance-monitoring.ts(448,10): error TS1359: Identifier expected. 'const' is a reserved word that cannot be used here.
+compliance-monitoring.ts(448,16): error TS1005: ',' expected.
+compliance-monitoring.ts(448,19): error TS1005: ',' expected.
+compliance-monitoring.ts(448,22): error TS1005: ',' expected.
+compliance-monitoring.ts(464,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(464,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(464,42): error TS1005: ',' expected.
+compliance-monitoring.ts(464,76): error TS1005: ';' expected.
+compliance-monitoring.ts(464,90): error TS1109: Expression expected.
+compliance-monitoring.ts(465,11): error TS1005: ':' expected.
+compliance-monitoring.ts(465,26): error TS1005: ',' expected.
+compliance-monitoring.ts(468,6): error TS1005: ',' expected.
+compliance-monitoring.ts(471,11): error TS1005: ':' expected.
+compliance-monitoring.ts(471,67): error TS1005: ',' expected.
+compliance-monitoring.ts(472,11): error TS1005: ',' expected.
+compliance-monitoring.ts(472,20): error TS1005: ',' expected.
+compliance-monitoring.ts(477,7): error TS1005: ',' expected.
+compliance-monitoring.ts(480,11): error TS1005: ',' expected.
+compliance-monitoring.ts(480,25): error TS1005: ',' expected.
+compliance-monitoring.ts(495,7): error TS1005: ',' expected.
+compliance-monitoring.ts(497,11): error TS1005: ',' expected.
+compliance-monitoring.ts(502,7): error TS1005: ',' expected.
+compliance-monitoring.ts(505,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(505,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(505,40): error TS1005: ',' expected.
+compliance-monitoring.ts(505,88): error TS1005: ';' expected.
+compliance-monitoring.ts(505,102): error TS1109: Expression expected.
+compliance-monitoring.ts(506,11): error TS1005: ':' expected.
+compliance-monitoring.ts(506,23): error TS1005: ',' expected.
+compliance-monitoring.ts(510,6): error TS1005: ',' expected.
+compliance-monitoring.ts(513,11): error TS1005: ':' expected.
+compliance-monitoring.ts(513,67): error TS1005: ',' expected.
+compliance-monitoring.ts(514,11): error TS1005: ',' expected.
+compliance-monitoring.ts(514,20): error TS1005: ',' expected.
+compliance-monitoring.ts(518,7): error TS1005: ',' expected.
+compliance-monitoring.ts(521,11): error TS1005: ',' expected.
+compliance-monitoring.ts(521,25): error TS1005: ',' expected.
+compliance-monitoring.ts(536,7): error TS1005: ',' expected.
+compliance-monitoring.ts(538,11): error TS1005: ',' expected.
+compliance-monitoring.ts(542,7): error TS1005: ',' expected.
+compliance-monitoring.ts(547,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(547,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(547,54): error TS1005: ',' expected.
+compliance-monitoring.ts(547,60): error TS1011: An element access expression should take an argument.
+compliance-monitoring.ts(547,62): error TS1005: ';' expected.
+compliance-monitoring.ts(548,11): error TS1005: ':' expected.
+compliance-monitoring.ts(548,17): error TS1005: ',' expected.
+compliance-monitoring.ts(564,6): error TS1005: ',' expected.
+compliance-monitoring.ts(567,10): error TS1359: Identifier expected. 'const' is a reserved word that cannot be used here.
+compliance-monitoring.ts(567,16): error TS1005: ',' expected.
+compliance-monitoring.ts(567,23): error TS1005: ',' expected.
+compliance-monitoring.ts(567,26): error TS1005: ',' expected.
+compliance-monitoring.ts(575,5): error TS1005: ',' expected.
+compliance-monitoring.ts(575,11): error TS1005: ',' expected.
+compliance-monitoring.ts(575,72): error TS1005: ',' expected.
+compliance-monitoring.ts(577,12): error TS1005: ':' expected.
+compliance-monitoring.ts(577,18): error TS1005: ',' expected.
+compliance-monitoring.ts(580,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(580,47): error TS1005: ',' expected.
+compliance-monitoring.ts(580,53): error TS1011: An element access expression should take an argument.
+compliance-monitoring.ts(580,55): error TS1005: ';' expected.
+compliance-monitoring.ts(580,64): error TS1011: An element access expression should take an argument.
+compliance-monitoring.ts(580,66): error TS1005: ';' expected.
+compliance-monitoring.ts(596,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(596,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(596,45): error TS1005: ',' expected.
+compliance-monitoring.ts(596,64): error TS1005: ';' expected.
+compliance-monitoring.ts(596,78): error TS1109: Expression expected.
+compliance-monitoring.ts(597,11): error TS1005: ':' expected.
+compliance-monitoring.ts(597,66): error TS1005: ',' expected.
+compliance-monitoring.ts(599,11): error TS1005: ',' expected.
+compliance-monitoring.ts(599,20): error TS1005: ',' expected.
+compliance-monitoring.ts(604,7): error TS1005: ',' expected.
+compliance-monitoring.ts(607,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(607,42): error TS1005: ',' expected.
+compliance-monitoring.ts(607,48): error TS1011: An element access expression should take an argument.
+compliance-monitoring.ts(607,50): error TS1005: ';' expected.
+compliance-monitoring.ts(607,72): error TS1011: An element access expression should take an argument.
+compliance-monitoring.ts(607,74): error TS1005: ';' expected.
+compliance-monitoring.ts(632,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(632,39): error TS1005: ';' expected.
+compliance-monitoring.ts(632,63): error TS1011: An element access expression should take an argument.
+compliance-monitoring.ts(632,65): error TS1005: ';' expected.
+compliance-monitoring.ts(647,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(647,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(647,38): error TS1005: ';' expected.
+compliance-monitoring.ts(647,52): error TS1011: An element access expression should take an argument.
+compliance-monitoring.ts(647,64): error TS1005: ':' expected.
+compliance-monitoring.ts(647,66): error TS1005: ',' expected.
+compliance-monitoring.ts(648,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(648,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(648,47): error TS1005: ';' expected.
+compliance-monitoring.ts(648,75): error TS1005: ':' expected.
+compliance-monitoring.ts(648,80): error TS1005: ',' expected.
+compliance-monitoring.ts(649,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(649,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(649,53): error TS1005: ',' expected.
+compliance-monitoring.ts(649,62): error TS1005: ';' expected.
+compliance-monitoring.ts(649,76): error TS1011: An element access expression should take an argument.
+compliance-monitoring.ts(649,88): error TS1005: ':' expected.
+compliance-monitoring.ts(649,90): error TS1005: ',' expected.
+compliance-monitoring.ts(650,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(650,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(650,35): error TS1005: ';' expected.
+compliance-monitoring.ts(650,49): error TS1011: An element access expression should take an argument.
+compliance-monitoring.ts(650,61): error TS1005: ':' expected.
+compliance-monitoring.ts(650,63): error TS1005: ',' expected.
+compliance-monitoring.ts(651,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(651,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(651,45): error TS1005: ',' expected.
+compliance-monitoring.ts(651,51): error TS1011: An element access expression should take an argument.
+compliance-monitoring.ts(651,53): error TS1005: ';' expected.
+compliance-monitoring.ts(651,80): error TS1005: ':' expected.
+compliance-monitoring.ts(651,81): error TS1005: ',' expected.
+compliance-monitoring.ts(652,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(652,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(652,47): error TS1005: ';' expected.
+compliance-monitoring.ts(652,75): error TS1005: ':' expected.
+compliance-monitoring.ts(652,80): error TS1005: ',' expected.
+compliance-monitoring.ts(653,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(653,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(653,45): error TS1005: ';' expected.
+compliance-monitoring.ts(653,73): error TS1005: ':' expected.
+compliance-monitoring.ts(653,78): error TS1005: ',' expected.
+compliance-monitoring.ts(654,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(654,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(654,46): error TS1005: ';' expected.
+compliance-monitoring.ts(654,73): error TS1005: ':' expected.
+compliance-monitoring.ts(654,74): error TS1005: ',' expected.
+compliance-monitoring.ts(655,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(655,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(655,36): error TS1005: ';' expected.
+compliance-monitoring.ts(655,63): error TS1005: ':' expected.
+compliance-monitoring.ts(655,67): error TS1005: ',' expected.
+compliance-monitoring.ts(656,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(656,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(656,48): error TS1005: ';' expected.
+compliance-monitoring.ts(656,75): error TS1005: ':' expected.
+compliance-monitoring.ts(656,76): error TS1005: ',' expected.
+compliance-monitoring.ts(657,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(657,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(657,44): error TS1005: ';' expected.
+compliance-monitoring.ts(657,71): error TS1005: ':' expected.
+compliance-monitoring.ts(657,72): error TS1005: ',' expected.
+compliance-monitoring.ts(658,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(658,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(658,48): error TS1005: ';' expected.
+compliance-monitoring.ts(658,75): error TS1005: ':' expected.
+compliance-monitoring.ts(658,76): error TS1005: ',' expected.
+compliance-monitoring.ts(659,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(659,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(659,46): error TS1005: ';' expected.
+compliance-monitoring.ts(659,73): error TS1005: ':' expected.
+compliance-monitoring.ts(659,74): error TS1005: ',' expected.
+compliance-monitoring.ts(660,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(660,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(660,49): error TS1005: ';' expected.
+compliance-monitoring.ts(660,76): error TS1005: ':' expected.
+compliance-monitoring.ts(660,77): error TS1005: ',' expected.
+compliance-monitoring.ts(661,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(661,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(661,50): error TS1005: ';' expected.
+compliance-monitoring.ts(661,77): error TS1005: ':' expected.
+compliance-monitoring.ts(661,78): error TS1005: ',' expected.
+compliance-monitoring.ts(662,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(662,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(662,42): error TS1005: ';' expected.
+compliance-monitoring.ts(662,69): error TS1005: ':' expected.
+compliance-monitoring.ts(662,70): error TS1005: ',' expected.
+compliance-monitoring.ts(663,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(663,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(663,41): error TS1005: ';' expected.
+compliance-monitoring.ts(663,68): error TS1005: ':' expected.
+compliance-monitoring.ts(663,69): error TS1005: ',' expected.
+compliance-monitoring.ts(664,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(664,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(664,41): error TS1005: ';' expected.
+compliance-monitoring.ts(664,68): error TS1005: ':' expected.
+compliance-monitoring.ts(664,69): error TS1005: ',' expected.
+compliance-monitoring.ts(665,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(665,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(665,41): error TS1005: ';' expected.
+compliance-monitoring.ts(665,55): error TS1011: An element access expression should take an argument.
+compliance-monitoring.ts(665,67): error TS1005: ':' expected.
+compliance-monitoring.ts(665,69): error TS1005: ',' expected.
+compliance-monitoring.ts(666,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(666,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(666,40): error TS1005: ';' expected.
+compliance-monitoring.ts(666,67): error TS1005: ':' expected.
+compliance-monitoring.ts(666,68): error TS1005: ',' expected.
+compliance-monitoring.ts(667,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(667,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(667,38): error TS1005: ';' expected.
+compliance-monitoring.ts(667,65): error TS1005: ':' expected.
+compliance-monitoring.ts(667,66): error TS1005: ',' expected.
+compliance-monitoring.ts(668,3): error TS1128: Declaration or statement expected.
+compliance-monitoring.ts(668,11): error TS1434: Unexpected keyword or identifier.
+compliance-monitoring.ts(668,43): error TS1005: ';' expected.
+compliance-monitoring.ts(668,57): error TS1011: An element access expression should take an argument.
+compliance-monitoring.ts(668,69): error TS1005: ':' expected.
+compliance-monitoring.ts(668,71): error TS1005: ',' expected.
+compliance-monitoring.ts(669,1): error TS1128: Declaration or statement expected.

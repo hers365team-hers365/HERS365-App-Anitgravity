@@ -40,14 +40,14 @@ export interface ComplianceFramework {
 
 export interface ComplianceRequirement {
   id: string;
-  framework: 'COPPA' | 'FERPA' | 'GDPR';
+  framework: 'COPPA' | 'FERPA' | 'GDPR' | 'AccessControl' | 'AuditLogging' | 'DataRetention';
   requirement: string;
   description: string;
   severity: 'critical' | 'high' | 'medium' | 'low';
   automated: boolean;
   checkFrequency: 'real-time' | 'daily' | 'weekly' | 'monthly';
   lastChecked?: string;
-  complianceStatus: 'compliant' | 'non-compliant' | 'needs-review';
+  complianceStatus?: 'compliant' | 'non-compliant' | 'needs-review';
   remediationSteps?: string[];
 }
 
@@ -97,7 +97,7 @@ export interface DataExportRequest {
   userId: string;
   userType: string;
   requestType: 'access' | 'portability' | 'audit';
-  complianceFramework: 'COPPA' | 'FERPA' | 'GDPR';
+  complianceFramework: 'COPPA' | 'FERPA' | 'GDPR' | 'AccessControl' | 'AuditLogging';
   requestedBy: string;
   requestedAt: string;
   status: 'pending' | 'processing' | 'completed' | 'failed';
@@ -123,7 +123,7 @@ export interface DataDeletionRequest {
   id: string;
   userId: string;
   userType: string;
-  complianceFramework: 'COPPA' | 'FERPA' | 'GDPR';
+  complianceFramework: 'COPPA' | 'FERPA' | 'GDPR' | 'AccessControl' | 'AuditLogging';
   deletionType: 'partial' | 'complete' | 'anonymize';
   requestedBy: string;
   requestedAt: string;
@@ -197,7 +197,7 @@ export interface ConsentRecord {
   userId: string;
   userType: string;
   consentType: 'data_processing' | 'marketing' | 'third_party' | 'parental' | 'age_verification';
-  framework: 'COPPA' | 'FERPA' | 'GDPR';
+  framework: 'COPPA' | 'FERPA' | 'GDPR' | 'AccessControl' | 'AuditLogging';
   consented: boolean;
   consentVersion: string;
   consentText: string;
@@ -251,7 +251,7 @@ export interface DataBreachIncident {
 // ─── COMPLIANCE MONITORING ───────────────────────────────────────────────────
 
 export interface ComplianceMetric {
-  framework: 'COPPA' | 'FERPA' | 'GDPR';
+  framework: 'COPPA' | 'FERPA' | 'GDPR' | 'AccessControl' | 'AuditLogging' | 'DataRetention';
   metric: string;
   value: number;
   target: number;
@@ -280,7 +280,7 @@ export interface ComplianceReport {
 
 export interface ComplianceViolation {
   id: string;
-  framework: 'COPPA' | 'FERPA' | 'GDPR';
+  framework: 'COPPA' | 'FERPA' | 'GDPR' | 'AccessControl' | 'AuditLogging' | 'DataRetention';
   requirement: string;
   severity: 'low' | 'medium' | 'high' | 'critical';
   description: string;
@@ -291,23 +291,3 @@ export interface ComplianceViolation {
   resolvedAt?: string;
   resolutionNotes?: string;
 }
-
-// ─── EXPORT DEFINITIONS ──────────────────────────────────────────────────────
-
-export type {
-  ComplianceFramework,
-  ComplianceRequirement,
-  Role,
-  Permission,
-  Restriction,
-  UserRoleAssignment,
-  DataExportRequest,
-  DataDeletionRequest,
-  DeletionAuditEntry,
-  ComplianceAuditLog,
-  ConsentRecord,
-  DataBreachIncident,
-  ComplianceMetric,
-  ComplianceReport,
-  ComplianceViolation
-};

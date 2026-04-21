@@ -448,6 +448,30 @@ export class QueryPatterns {
     return resources[0];
   }
 
+  /**
+   * Get user inbox messages
+   */
+  async getUserInbox(userId: string, since?: Date, pageSize: number = 50): Promise<any[]> {
+    const querySpec = {
+      query: `
+        SELECT * FROM c
+        WHERE c.recipientId = @userId
+          AND (@since = null OR c.createdAt > @since)
+        ORDER BY c.createdAt DESC
+      `,
+      parameters: [
+        { name: '@userId', value: userId },
+        { name: '@since', value: since ? since.toISOString() : null }
+      ]
+    };
+
+    const { resources } = await this.container.items
+      .query(querySpec, { maxItemCount: pageSize })
+      .fetchAll();
+
+    return resources;
+  }
+
   // ─── SOCIAL FEED QUERIES ────────────────────────────────────────────────────
 
   /**
@@ -491,8 +515,7 @@ export class QueryPatterns {
     };
 
     const options: any = {
-      maxItemCount: pageSize,
-      enableCrossPartitionQuery: true // Allows querying all partitions
+      maxItemCount: pageSize
     };
 
     if (continuationToken) {
@@ -544,7 +567,7 @@ export class QueryPatterns {
     };
 
     const { resources } = await this.container.items
-      .query(querySpec, { enableCrossPartitionQuery: true })
+      .query(querySpec)
       .fetchAll();
 
     return resources[0] || 0;
@@ -596,7 +619,6 @@ export class QueryPatterns {
 
     return await this.container.items
       .query(querySpec, {
-        enableCrossPartitionQuery: true,
         maxItemCount: pageSize
       })
       .fetchNext();
@@ -847,18 +869,12 @@ export class OptimizedCosmosClient {
     this.client = new CosmosClient({
       endpoint: config.endpoint,
       key: config.key,
-      connectionPolicy: {
-        requestTimeout: 10000, // 10 seconds for sub-200ms target
-        mediaRequestTimeout: 10000,
-        enableEndpointDiscovery: true,
-        preferredLocations: [], // Will be set based on geo-distribution
-        retryOptions: {
-          maxRetryAttemptsOnThrottledRequests: 3,
-          maxRetryWaitTimeInSeconds: 30
-        }
+      retryOptions: {
+        maxRetryAttemptsOnThrottledRequests: 3,
+        maxRetryWaitTimeInSeconds: 30
       },
-      consistencyLevel: 'Session' // Good balance of consistency and performance
-    });
+      consistencyLevel: 'Session'
+    } as any);
 
     this.database = this.client.database(config.databaseName);
   }
@@ -874,17 +890,33 @@ export class OptimizedCosmosClient {
     for (const containerConfig of COSMOS_SCHEMA.containers) {
       const container = await this.database.containers.createIfNotExists({
         id: containerConfig.name,
-        partitionKey: containerConfig.partitionKey,
+        partitionKey: { paths: [typeof containerConfig.partitionKey === 'string' ? containerConfig.partitionKey : containerConfig.partitionKey[0]] },
         defaultTtl: containerConfig.defaultTtl,
-        indexingPolicy: containerConfig.indexingPolicy,
-        uniqueKeyPolicy: containerConfig.uniqueKeyPolicy,
-        conflictResolutionPolicy: containerConfig.conflictResolutionPolicy
+        indexingPolicy: containerConfig.indexingPolicy ? {
+          ...containerConfig.indexingPolicy,
+          includedPaths: containerConfig.indexingPolicy.includedPaths?.map(p => ({ path: p })),
+          excludedPaths: containerConfig.indexingPolicy.excludedPaths?.map(p => ({ path: p })),
+          spatialIndexes: containerConfig.indexingPolicy.spatialIndexes as any
+        } : undefined,
+        uniqueKeyPolicy: containerConfig.uniqueKeyPolicy ? {
+          uniqueKeys: containerConfig.uniqueKeyPolicy.uniqueKeys.map(k => ({ paths: k }))
+        } : undefined,
+        conflictResolutionPolicy: containerConfig.conflictResolutionPolicy as any
       });
 
       // Set throughput if specified
       const throughput = COSMOS_SCHEMA.throughput.containers[containerConfig.name];
       if (throughput) {
-        await container.container.replaceThroughput({ throughput });
+        const { resource: offer } = await container.container.readOffer();
+        if (offer) {
+          await this.client.offer(offer.id!).replace({
+            ...offer,
+            content: {
+              ...offer.content,
+              offerThroughput: throughput
+            }
+          } as any);
+        }
       }
 
       this.containers.set(containerConfig.name, container.container);
@@ -938,7 +970,7 @@ export class OptimizedCosmosClient {
 
     for (const [name, container] of this.containers) {
       try {
-        const throughput = await container.readThroughput();
+        const throughput = await container.readOffer();
         const metrics = await container.read({
           populateQuotaInfo: true
         });
@@ -946,7 +978,7 @@ export class OptimizedCosmosClient {
         // This is a simplified version - in production you'd use Cosmos DB metrics
         result.containers[name] = {
           consumed: 0, // Would be populated from metrics
-          available: throughput.resource?.throughput || 0,
+          available: (throughput.resource?.content as any)?.offerThroughput || 0,
           utilization: 0 // Would be calculated from metrics
         };
       } catch (error) {
@@ -972,4 +1004,3 @@ export class OptimizedCosmosClient {
 
 export const cosmosConfig = COSMOS_SCHEMA;
 export const partitionKeys = PartitionKeyGenerator;
-export { OptimizedCosmosClient };

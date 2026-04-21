@@ -462,6 +462,152 @@ export const faqs = sqliteTable('faqs', {
     lastAskedAt: text('last_asked_at').default(sql `CURRENT_TIMESTAMP`),
     createdAt: integer('created_at', { mode: 'timestamp' }).default(sql `CURRENT_TIMESTAMP`),
 });
+// ──────────────────────────────────────────────────────────────────────────────
+// EVENT-DRIVEN MICROSERVICES SCHEMA
+// ──────────────────────────────────────────────────────────────────────────────
+// Event store for reliability and idempotency
+export const eventStore = sqliteTable('event_store', {
+    id: text('id').primaryKey(),
+    eventType: text('event_type').notNull(),
+    aggregateId: text('aggregate_id').notNull(),
+    aggregateType: text('aggregate_type').notNull(),
+    timestamp: text('timestamp').notNull(),
+    correlationId: text('correlation_id').notNull(),
+    causationId: text('causation_id'),
+    userId: text('user_id'),
+    userType: text('user_type'),
+    source: text('source').notNull(),
+    version: integer('version').notNull(),
+    metadata: text('metadata').notNull(), // JSON string
+    payload: text('payload').notNull(), // JSON string
+    processed: integer('processed', { mode: 'boolean' }).default(false),
+    processedAt: text('processed_at'),
+    errorMessage: text('error_message'),
+    retryCount: integer('retry_count').default(0),
+    maxRetries: integer('max_retries').default(3),
+    deadLetter: integer('dead_letter', { mode: 'boolean' }).default(false),
+    deadLetterReason: text('dead_letter_reason'),
+    createdAt: text('created_at').default(sql `CURRENT_TIMESTAMP`),
+});
+// Saga state management for complex transactions
+export const sagaInstances = sqliteTable('saga_instances', {
+    id: text('id').primaryKey(),
+    sagaType: text('saga_type').notNull(),
+    correlationId: text('correlation_id').notNull(),
+    aggregateId: text('aggregate_id').notNull(),
+    aggregateType: text('aggregate_type').notNull(),
+    status: text('status').notNull(), // 'pending', 'completed', 'failed', 'compensating'
+    currentStep: text('current_step'),
+    stepsCompleted: text('steps_completed').notNull(), // JSON array
+    compensating: integer('compensating', { mode: 'boolean' }).default(false),
+    retryCount: integer('retry_count').default(0),
+    maxRetries: integer('max_retries').default(3),
+    errorMessage: text('error_message'),
+    metadata: text('metadata'), // JSON additional context
+    createdAt: text('created_at').default(sql `CURRENT_TIMESTAMP`),
+    updatedAt: text('updated_at').default(sql `CURRENT_TIMESTAMP`),
+});
+// Service health and circuit breaker state
+export const serviceHealth = sqliteTable('service_health', {
+    id: text('id').primaryKey(),
+    serviceName: text('service_name').notNull(),
+    serviceId: text('service_id').notNull(),
+    status: text('status').notNull(), // 'healthy', 'degraded', 'unhealthy'
+    lastHealthCheck: text('last_health_check').default(sql `CURRENT_TIMESTAMP`),
+    consecutiveFailures: integer('consecutive_failures').default(0),
+    totalRequests: integer('total_requests').default(0),
+    failedRequests: integer('failed_requests').default(0),
+    averageResponseTime: real('average_response_time'),
+    circuitBreakerState: text('circuit_breaker_state').default('closed'), // 'closed', 'open', 'half_open'
+    lastFailureAt: text('last_failure_at'),
+    metadata: text('metadata'), // JSON health check details
+    createdAt: text('created_at').default(sql `CURRENT_TIMESTAMP`),
+    updatedAt: text('updated_at').default(sql `CURRENT_TIMESTAMP`),
+});
+// Idempotency keys for API requests
+export const idempotencyKeys = sqliteTable('idempotency_keys', {
+    id: text('id').primaryKey(),
+    key: text('key').notNull().unique(),
+    requestHash: text('request_hash').notNull(),
+    responseData: text('response_data'),
+    status: text('status').notNull(), // 'processing', 'completed', 'failed'
+    expiresAt: text('expires_at').notNull(),
+    createdAt: text('created_at').default(sql `CURRENT_TIMESTAMP`),
+    completedAt: text('completed_at'),
+});
+// Service discovery and registration
+export const serviceRegistry = sqliteTable('service_registry', {
+    id: text('id').primaryKey(),
+    serviceName: text('service_name').notNull(),
+    serviceId: text('service_id').notNull().unique(),
+    host: text('host').notNull(),
+    port: integer('port').notNull(),
+    protocol: text('protocol').default('http'),
+    healthEndpoint: text('health_endpoint').default('/health'),
+    status: text('status').default('starting'), // 'starting', 'healthy', 'unhealthy', 'stopped'
+    lastHeartbeat: text('last_heartbeat').default(sql `CURRENT_TIMESTAMP`),
+    metadata: text('metadata'), // JSON service capabilities
+    tags: text('tags'), // JSON tags for service discovery
+    registeredAt: text('registered_at').default(sql `CURRENT_TIMESTAMP`),
+    updatedAt: text('updated_at').default(sql `CURRENT_TIMESTAMP`),
+});
+// Distributed locks for leader election and coordination
+export const distributedLocks = sqliteTable('distributed_locks', {
+    id: text('id').primaryKey(),
+    lockKey: text('lock_key').notNull().unique(),
+    ownerId: text('owner_id').notNull(),
+    ttl: integer('ttl').notNull(), // Time to live in seconds
+    acquiredAt: text('acquired_at').default(sql `CURRENT_TIMESTAMP`),
+    metadata: text('metadata'), // JSON lock context
+});
+// Outbox pattern for reliable event publishing
+export const eventOutbox = sqliteTable('event_outbox', {
+    id: integer('id').primaryKey(),
+    eventId: text('event_id').notNull().unique(),
+    eventType: text('event_type').notNull(),
+    aggregateId: text('aggregate_id').notNull(),
+    payload: text('payload').notNull(), // JSON
+    metadata: text('metadata').notNull(), // JSON
+    published: integer('published', { mode: 'boolean' }).default(false),
+    publishedAt: text('published_at'),
+    retryCount: integer('retry_count').default(0),
+    maxRetries: integer('max_retries').default(5),
+    errorMessage: text('error_message'),
+    nextRetryAt: text('next_retry_at'),
+    createdAt: text('created_at').default(sql `CURRENT_TIMESTAMP`),
+});
+// Inbox pattern for reliable event consumption
+export const eventInbox = sqliteTable('event_inbox', {
+    id: integer('id').primaryKey(),
+    eventId: text('event_id').notNull().unique(),
+    eventType: text('event_type').notNull(),
+    aggregateId: text('aggregate_id').notNull(),
+    payload: text('payload').notNull(), // JSON
+    metadata: text('metadata').notNull(), // JSON
+    processed: integer('processed', { mode: 'boolean' }).default(false),
+    processedAt: text('processed_at'),
+    processingId: text('processing_id'), // UUID for concurrent processing
+    retryCount: integer('retry_count').default(0),
+    maxRetries: integer('max_retries').default(3),
+    errorMessage: text('error_message'),
+    createdAt: text('created_at').default(sql `CURRENT_TIMESTAMP`),
+});
+// Command store for CQRS pattern
+export const commandStore = sqliteTable('command_store', {
+    id: text('id').primaryKey(),
+    commandType: text('command_type').notNull(),
+    aggregateId: text('aggregate_id').notNull(),
+    aggregateType: text('aggregate_type').notNull(),
+    payload: text('payload').notNull(), // JSON
+    metadata: text('metadata').notNull(), // JSON
+    executed: integer('executed', { mode: 'boolean' }).default(false),
+    executedAt: text('executed_at'),
+    result: text('result'), // JSON
+    errorMessage: text('error_message'),
+    retryCount: integer('retry_count').default(0),
+    maxRetries: integer('max_retries').default(3),
+    createdAt: text('created_at').default(sql `CURRENT_TIMESTAMP`),
+});
 export const supportInteractions = sqliteTable('support_interactions', {
     id: integer('id').primaryKey(),
     playerId: integer('player_id').references(() => players.id),

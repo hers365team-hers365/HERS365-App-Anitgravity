@@ -84,7 +84,7 @@ export class DataExportPipeline {
       logger.info(`Completed data export for user ${request.userId}`, { requestId: request.id });
 
     } catch (error) {
-      logger.error(`Data export failed for request ${request.id}:`, error);
+      logger.error(`Data export failed for request ${request.id}:`, error as Error);
 
       // Update status to failed
       await this.updateExportStatus(request.id, 'failed', error instanceof Error ? error.message : 'Unknown error');
@@ -234,9 +234,8 @@ export class DataExportPipeline {
     };
 
     const { resources } = await auditContainer.items.query(querySpec, {
-      enableCrossPartitionQuery: true,
       maxItemCount: 1000
-    });
+    }).fetchAll();
 
     return resources;
   }
@@ -446,7 +445,7 @@ export class DataDeletionPipeline {
       logger.info(`Completed data deletion for user ${request.userId}`, { requestId: request.id });
 
     } catch (error) {
-      logger.error(`Data deletion failed for request ${request.id}:`, error);
+      logger.error(`Data deletion failed for request ${request.id}:`, error as Error);
 
       // Update status to failed
       await this.updateDeletionStatus(request.id, 'failed', error instanceof Error ? error.message : 'Unknown error');
@@ -612,9 +611,7 @@ export class DataDeletionPipeline {
       parameters: [{ name: '@userId', value: userId }]
     };
 
-    const { resources } = await messagesContainer.items.query(querySpec, {
-      enableCrossPartitionQuery: true
-    });
+    const { resources } = await messagesContainer.items.query(querySpec).fetchAll();
 
     const conversationIds = [...new Set(resources.map(r => r.conversationId))];
 
@@ -626,9 +623,7 @@ export class DataDeletionPipeline {
         parameters: [{ name: '@conversationId', value: conversationId }]
       };
 
-      const { resources: messages } = await messagesContainer.items.query(deleteQuery, {
-        enableCrossPartitionQuery: true
-      });
+      const { resources: messages } = await messagesContainer.items.query(deleteQuery).fetchAll();
 
       for (const message of messages) {
         await messagesContainer.item(message.id, message.partitionKey).delete();
@@ -654,9 +649,7 @@ export class DataDeletionPipeline {
       parameters: [{ name: '@userId', value: userId }]
     };
 
-    const { resources } = await auditContainer.items.query(querySpec, {
-      enableCrossPartitionQuery: true
-    });
+    const { resources } = await auditContainer.items.query(querySpec).fetchAll();
 
     let anonymizedCount = 0;
     for (const auditLog of resources) {
@@ -712,5 +705,3 @@ export class DataDeletionPipeline {
 }
 
 // ─── EXPORT PIPELINES ────────────────────────────────────────────────────────
-
-export { DataExportPipeline, DataDeletionPipeline };

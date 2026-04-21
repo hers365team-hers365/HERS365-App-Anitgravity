@@ -63,7 +63,7 @@ const defaultConfig: CacheConfig = {
 // ─── REDIS CACHE CLIENT ────────────────────────────────────────────────────────
 
 export class RedisCacheClient {
-  private client: RedisClientType;
+  private client!: RedisClientType;
   private config: CacheConfig;
   private metrics: {
     hits: number;
@@ -83,23 +83,13 @@ export class RedisCacheClient {
       url: this.config.redis.url,
       socket: {
         connectTimeout: 60000,
-        commandTimeout: 5000,
-        lazyConnect: true
-      },
-      retry_strategy: (options) => {
-        if (options.error && options.error.code === 'ECONNREFUSED') {
-          logger.error('Redis connection refused');
-          return new Error('Redis server connection refused');
+        reconnectStrategy: (retries) => {
+          if (retries > 10) {
+            logger.error('Redis max retry attempts reached');
+            return new Error('Max retry attempts reached');
+          }
+          return Math.min(retries * 100, 3000);
         }
-        if (options.total_retry_time > 1000 * 60 * 60) {
-          logger.error('Redis retry time exhausted');
-          return new Error('Retry time exhausted');
-        }
-        if (options.attempt > 10) {
-          logger.error('Redis max retry attempts reached');
-          return new Error('Max retry attempts reached');
-        }
-        return Math.min(options.attempt * 100, 3000);
       }
     });
 
@@ -115,7 +105,7 @@ export class RedisCacheClient {
     try {
       await this.client.connect();
     } catch (error) {
-      logger.error('Failed to connect to Redis:', error);
+      logger.error('Failed to connect to Redis:', error as Error);
     }
   }
 
@@ -133,7 +123,7 @@ export class RedisCacheClient {
       return null;
     } catch (error) {
       this.metrics.errors++;
-      logger.error(`Redis GET error for key ${key}:`, error);
+      logger.error(`Redis GET error for key ${key}:`, error as Error);
       return null;
     }
   }
@@ -152,7 +142,7 @@ export class RedisCacheClient {
       return result === 'OK';
     } catch (error) {
       this.metrics.errors++;
-      logger.error(`Redis SET error for key ${key}:`, error);
+      logger.error(`Redis SET error for key ${key}:`, error as Error);
       return false;
     }
   }
@@ -167,7 +157,7 @@ export class RedisCacheClient {
       return result > 0;
     } catch (error) {
       this.metrics.errors++;
-      logger.error(`Redis DEL error for key ${key}:`, error);
+      logger.error(`Redis DEL error for key ${key}:`, error as Error);
       return false;
     }
   }
@@ -188,7 +178,7 @@ export class RedisCacheClient {
       return true;
     } catch (error) {
       this.metrics.errors++;
-      logger.error('Redis MSETEX error:', error);
+      logger.error('Redis MSETEX error:', error as Error);
       return false;
     }
   }
@@ -268,7 +258,7 @@ export class HybridCacheManager {
       this.recordLatency('user_miss', Date.now() - startTime);
       return null;
     } catch (error) {
-      logger.error(`Error getting user ${userId}:`, error);
+      logger.error(`Error getting user ${userId}:`, error as Error);
       this.recordLatency('user_error', Date.now() - startTime);
       throw error;
     }
@@ -294,7 +284,7 @@ export class HybridCacheManager {
       this.recordLatency('user_update', Date.now() - startTime);
       return updatedUser;
     } catch (error) {
-      logger.error(`Error updating user ${userId}:`, error);
+      logger.error(`Error updating user ${userId}:`, error as Error);
       this.recordLatency('user_update_error', Date.now() - startTime);
       throw error;
     }
@@ -350,7 +340,7 @@ export class HybridCacheManager {
       this.recordLatency('posts_db_hit', Date.now() - startTime);
       return result;
     } catch (error) {
-      logger.error(`Error getting posts for user ${userId}:`, error);
+      logger.error(`Error getting posts for user ${userId}:`, error as Error);
       this.recordLatency('posts_error', Date.now() - startTime);
       throw error;
     }
@@ -376,7 +366,7 @@ export class HybridCacheManager {
       this.recordLatency('post_create', Date.now() - startTime);
       return post;
     } catch (error) {
-      logger.error('Error creating post:', error);
+      logger.error('Error creating post:', error as Error);
       this.recordLatency('post_create_error', Date.now() - startTime);
       throw error;
     }
@@ -404,7 +394,7 @@ export class HybridCacheManager {
       }
 
       // Cache miss - perform search
-      const results = await this.repositories.getSearchRepository().searchAthletes(filters, sortBy, 50);
+      const results = await this.repositories.getSearchRepository().searchAthletes(filters, sortBy as any, 50);
 
       const result = {
         results,
@@ -418,7 +408,7 @@ export class HybridCacheManager {
       this.recordLatency('search_db_hit', Date.now() - startTime);
       return result;
     } catch (error) {
-      logger.error('Error searching athletes:', error);
+      logger.error('Error searching athletes:', error as Error);
       this.recordLatency('search_error', Date.now() - startTime);
       throw error;
     }
@@ -458,7 +448,7 @@ export class HybridCacheManager {
       this.recordLatency('messages_db_hit', Date.now() - startTime);
       return { messages, cached: false };
     } catch (error) {
-      logger.error(`Error getting messages for conversation ${conversationId}:`, error);
+      logger.error(`Error getting messages for conversation ${conversationId}:`, error as Error);
       this.recordLatency('messages_error', Date.now() - startTime);
       throw error;
     }
@@ -495,7 +485,7 @@ export class HybridCacheManager {
       this.recordLatency('analytics_db_hit', Date.now() - startTime);
       return { data, cached: false };
     } catch (error) {
-      logger.error(`Error getting analytics for ${metricType}:`, error);
+      logger.error(`Error getting analytics for ${metricType}:`, error as Error);
       this.recordLatency('analytics_error', Date.now() - startTime);
       throw error;
     }
@@ -581,7 +571,7 @@ export class HybridCacheManager {
 
       logger.info('Cache warmup completed');
     } catch (error) {
-      logger.error('Cache warmup failed:', error);
+      logger.error('Cache warmup failed:', error as Error);
     }
   }
 
@@ -680,5 +670,4 @@ export class CacheAsideManager {
 
 // ─── EXPORT COMPONENTS ────────────────────────────────────────────────────────
 
-export { RedisCacheClient, HybridCacheManager, CacheAsideManager };
 export { defaultConfig as cacheConfig };

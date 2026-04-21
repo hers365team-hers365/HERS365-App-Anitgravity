@@ -1,118 +1,95 @@
 /**
- * COMPREHENSIVE OBSERVABILITY AND COMPLIANCE REPORTING
- * Enterprise-grade monitoring, alerting, and compliance for authentication system
+ * DISTRIBUTED TRACING AND OBSERVABILITY
+ * OpenTelemetry integration for microservices observability
  */
-/**
- * GDPR Compliance Reporting
- */
-export declare class GDPRComplianceReporter {
-    /**
-     * Generate GDPR Article 32 Security Report
-     */
-    generateSecurityReport(timeRangeDays?: number): Promise<any>;
-    /**
-     * Generate COPPA Compliance Report
-     */
-    generateCOPPAReport(timeRangeDays?: number): Promise<any>;
-    /**
-     * Generate FERPA Compliance Report
-     */
-    generateFERPAReport(timeRangeDays?: number): Promise<any>;
-    private getUniqueDataSubjects;
-    private getDataBreachIncidents;
-    private assessGDPRCompliance;
-    private assessCOPPACompliance;
-    private assessFERPACompliance;
-    private generateGDPRRecommendations;
-    private generateCOPPARecommendations;
-    private generateFERPARecommendations;
-}
-/**
- * Real-time security monitoring and alerting
- */
-export declare class SecurityMonitoringService {
+import { Span, Tracer } from '@opentelemetry/api';
+export declare class TracingService {
     private static instance;
-    private alertThresholds;
-    private activeAlerts;
+    private tracer;
+    private provider;
     private constructor();
-    static getInstance(): SecurityMonitoringService;
-    private initializeAlertThresholds;
+    static getInstance(): TracingService;
+    private initializeTracing;
+    getTracer(): Tracer;
     /**
-     * Check for security alerts and trigger notifications
+     * Create a new span for a service operation
      */
-    private checkForAlerts;
+    startSpan(name: string, options?: {
+        parentSpan?: Span;
+        attributes?: Record<string, string | number | boolean>;
+    }): Span;
     /**
-     * Check for suspicious patterns in audit logs
+     * Wrap an async operation with tracing
      */
-    private checkAuditLogPatterns;
+    traceAsync<T>(name: string, operation: (span: Span) => Promise<T>, options?: {
+        attributes?: Record<string, string | number | boolean>;
+    }): Promise<T>;
     /**
-     * Trigger security alert
+     * Add event to current span
      */
-    private triggerAlert;
+    addEvent(name: string, attributes?: Record<string, string | number | boolean>): void;
     /**
-     * Resolve security alert
+     * Set attributes on current span
      */
-    resolveAlert(alertId: string): Promise<void>;
+    setAttributes(attributes: Record<string, string | number | boolean>): void;
     /**
-     * Get active alerts
+     * Get current span context for correlation
      */
-    getActiveAlerts(): any[];
-    /**
-     * Start monitoring loop
-     */
-    private startMonitoringLoop;
+    getCurrentSpan(): Span | undefined;
+    shutdown(): Promise<void>;
 }
-/**
- * Performance monitoring for authentication system
- */
-export declare class PerformanceMonitoringService {
+export declare class MetricsService {
     private static instance;
-    private responseTimes;
+    private metrics;
     private constructor();
-    static getInstance(): PerformanceMonitoringService;
-    private initializeEndpoints;
+    static getInstance(): MetricsService;
+    private initializeMetrics;
     /**
-     * Record endpoint response time
+     * Record a metric
      */
-    recordResponseTime(endpoint: string, responseTime: number): void;
+    recordMetric(name: string, value: number, type: 'counter' | 'gauge' | 'histogram', labels?: Record<string, string>): void;
     /**
-     * Get performance statistics
+     * Increment a counter metric
      */
-    getPerformanceStats(): Record<string, any>;
+    incrementCounter(name: string, labels?: Record<string, string>): void;
     /**
-     * Check performance thresholds
+     * Set a gauge metric
      */
-    checkPerformanceThresholds(): {
-        violations: Array<{
-            endpoint: string;
-            metric: string;
-            value: number;
-            threshold: number;
-        }>;
-        overall: 'good' | 'warning' | 'critical';
-    };
+    setGauge(name: string, value: number, labels?: Record<string, string>): void;
+    /**
+     * Record histogram value
+     */
+    recordHistogram(name: string, value: number, labels?: Record<string, string>): void;
+    /**
+     * Get all metrics
+     */
+    getMetrics(): Record<string, any>;
+    /**
+     * Export metrics in Prometheus format
+     */
+    exportPrometheus(): string;
+    private startPeriodicReporting;
+    private resetCounters;
 }
-/**
- * Security dashboard data provider
- */
-export declare class SecurityDashboardService {
+export declare class CorrelationService {
     private static instance;
     private constructor();
-    static getInstance(): SecurityDashboardService;
+    static getInstance(): CorrelationService;
     /**
-     * Get dashboard data
+     * Generate a correlation ID for request tracing
      */
-    getDashboardData(timeRangeHours?: number): Promise<any>;
+    generateCorrelationId(): string;
     /**
-     * Get compliance summary
+     * Extract correlation ID from request headers
      */
-    private getComplianceSummary;
+    extractCorrelationId(headers: any): string;
     /**
-     * Generate dashboard recommendations
+     * Create distributed tracing context
      */
-    private generateDashboardRecommendations;
+    createTracingContext(correlationId: string, serviceName: string, operation: string): any;
+    private generateTraceId;
+    private generateSpanId;
 }
-export declare const gdprReporter: GDPRComplianceReporter;
-export declare const securityMonitoring: SecurityMonitoringService;
-export declare const performanceMonitoring: PerformanceMonitoringService;
-export declare const securityDashboard: SecurityDashboardService;
+export declare const tracing: TracingService;
+export declare const metrics: MetricsService;
+export declare const correlation: CorrelationService;

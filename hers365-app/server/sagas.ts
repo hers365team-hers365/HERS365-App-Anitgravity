@@ -5,7 +5,7 @@
 
 import { db } from './db';
 import * as schema from './schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, lt } from 'drizzle-orm';
 import { eventPublisher } from './service-bus';
 import { DomainEvent } from './events';
 import { logger } from './logger';
@@ -68,7 +68,7 @@ export abstract class Saga {
           await this.saveSagaState('pending', step.name);
 
         } catch (error) {
-          logger.error(`Saga step failed: ${step.name} (${this.sagaId})`, error);
+          logger.error(`Saga step failed: ${step.name} (${this.sagaId})`, error as Error);
 
           // Start compensation
           this.compensating = true;
@@ -85,7 +85,7 @@ export abstract class Saga {
       logger.info(`Saga completed successfully: ${this.sagaId}`);
 
     } catch (error) {
-      logger.error(`Saga execution failed: ${this.sagaId}`, error);
+      logger.error(`Saga execution failed: ${this.sagaId}`, error as Error);
       throw error;
     }
   }
@@ -103,7 +103,7 @@ export abstract class Saga {
           logger.info(`Executing compensation: ${step.name} (${this.sagaId})`);
           await step.compensation();
         } catch (compensationError) {
-          logger.error(`Compensation failed for step: ${step.name} (${this.sagaId})`, compensationError);
+          logger.error(`Compensation failed for step: ${step.name} (${this.sagaId})`, compensationError as Error);
           // Continue with other compensations even if one fails
         }
       }

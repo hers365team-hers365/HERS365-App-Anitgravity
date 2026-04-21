@@ -1,0 +1,43 @@
+
+> server@1.0.0 build
+> tsc
+
+auth.ts(258,11): error TS2322: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'.
+auth.ts(550,3): error TS2322: Type '{ id: number; userId: number; userType: UserType; sessionId: string; refreshTokenId: number | undefined; deviceFingerprint: string | undefined; ipAddress: string | undefined; ... 4 more ...; lastActivityAt: Date | null; }[]' is not assignable to type 'SessionData[]'.
+  Type '{ id: number; userId: number; userType: UserType; sessionId: string; refreshTokenId: number | undefined; deviceFingerprint: string | undefined; ipAddress: string | undefined; userAgent: string | undefined; location: string | undefined; isActive: boolean; expiresAt: Date; lastActivityAt: Date | null; }' is not assignable to type 'SessionData'.
+    Types of property 'lastActivityAt' are incompatible.
+      Type 'Date | null' is not assignable to type 'Date'.
+        Type 'null' is not assignable to type 'Date'.
+auth.ts(684,5): error TS2322: Type 'Date | null' is not assignable to type 'Date'.
+  Type 'null' is not assignable to type 'Date'.
+auth.ts(859,5): error TS2322: Type 'Date | null' is not assignable to type 'Date'.
+  Type 'null' is not assignable to type 'Date'.
+auth.ts(1189,21): error TS2345: Argument of type 'SQL<unknown>' is not assignable to parameter of type 'never'.
+auth.ts(1192,21): error TS2345: Argument of type 'SQL<unknown>' is not assignable to parameter of type 'never'.
+auth.ts(1195,21): error TS2345: Argument of type 'SQL<unknown>' is not assignable to parameter of type 'never'.
+auth.ts(1198,21): error TS2345: Argument of type 'SQL<unknown>' is not assignable to parameter of type 'never'.
+auth.ts(1201,21): error TS2345: Argument of type 'SQL<unknown>' is not assignable to parameter of type 'never'.
+auth.ts(1204,21): error TS2345: Argument of type 'SQL<unknown>' is not assignable to parameter of type 'never'.
+auth.ts(1208,5): error TS2740: Type 'Omit<SQLiteSelectBase<"security_audit_logs", "sync", RunResult, { id: SQLiteColumn<{ name: "id"; tableName: "security_audit_logs"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; ... 8 more ...; generated: undefined; }, {}, {}>; ... 11 more ...; createdAt: SQLiteColumn<...>; }, .....' is missing the following properties from type 'SQLiteSelectBase<"security_audit_logs", "sync", RunResult, { id: SQLiteColumn<{ name: "id"; tableName: "security_audit_logs"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; ... 8 more ...; generated: undefined; }, {}, {}>; ... 11 more ...; createdAt: SQLiteColumn<...>; }, ... 5 m...': joinsNotNullableMap, tableName, isPartialSelect, session, and 4 more.
+auth.ts(1211,3): error TS2740: Type 'Omit<SQLiteSelectBase<"security_audit_logs", "sync", RunResult, { id: SQLiteColumn<{ name: "id"; tableName: "security_audit_logs"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; ... 8 more ...; generated: undefined; }, {}, {}>; ... 11 more ...; createdAt: SQLiteColumn<...>; }, .....' is missing the following properties from type 'SQLiteSelectBase<"security_audit_logs", "sync", RunResult, { id: SQLiteColumn<{ name: "id"; tableName: "security_audit_logs"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; ... 8 more ...; generated: undefined; }, {}, {}>; ... 11 more ...; createdAt: SQLiteColumn<...>; }, ... 5 m...': joinsNotNullableMap, tableName, isPartialSelect, session, and 5 more.
+cache-layer.ts(574,44): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'LogContext | Error | undefined'.
+cloud-storage.ts(4,62): error TS2307: Cannot find module '@aws-sdk/client-s3' or its corresponding type declarations.
+cloud-storage.ts(5,30): error TS2307: Cannot find module '@aws-sdk/s3-request-presigner' or its corresponding type declarations.
+compliance-orchestrator.ts(277,41): error TS2341: Property 'runComplianceChecks' is private and only accessible within class 'ComplianceMonitor'.
+compliance-orchestrator.ts(322,11): error TS2304: Cannot find name 'uuidv4'.
+compliance-orchestrator.ts(323,7): error TS2322: Type '"ComplianceEmergencyStop"' is not assignable to type '"UserCreated" | "UserUpdated" | "UserDeleted" | "LoginAttempted" | "LoginSuccessful" | "LoginFailed" | "TokenRefreshed" | "ScholarshipOffered" | "ScholarshipAccepted" | "MessageSent" | ... 13 more ... | "CircuitBreaker"'.
+compliance-orchestrator.ts(327,22): error TS2304: Cannot find name 'uuidv4'.
+compliance-orchestrator.ts(333,25): error TS2304: Cannot find name 'uuidv4'.
+compliance-service.ts(120,34): error TS2345: Argument of type '{ userId: string; userType: string; action: string; resource: string; operation: "read"; success: false; errorMessage: string; metadata: { ipAddress: string; userAgent: string; correlationId: any; complianceFlags: string[]; sensitivity: "internal"; retentionPeriod: number; }; }' is not assignable to parameter of type 'Omit<ComplianceAuditLog, "id" | "eventId" | "hash" | "previousHash">'.
+  Property 'timestamp' is missing in type '{ userId: string; userType: string; action: string; resource: string; operation: "read"; success: false; errorMessage: string; metadata: { ipAddress: string; userAgent: string; correlationId: any; complianceFlags: string[]; sensitivity: "internal"; retentionPeriod: number; }; }' but required in type 'Omit<ComplianceAuditLog, "id" | "eventId" | "hash" | "previousHash">'.
+compliance-service.ts(145,34): error TS2345: Argument of type '{ userId: string; userType: string; action: string; resource: string; operation: "read"; success: false; errorMessage: string; metadata: { ipAddress: string; userAgent: string; correlationId: any; complianceFlags: string[]; sensitivity: "internal"; retentionPeriod: number; }; }' is not assignable to parameter of type 'Omit<ComplianceAuditLog, "id" | "eventId" | "hash" | "previousHash">'.
+  Property 'timestamp' is missing in type '{ userId: string; userType: string; action: string; resource: string; operation: "read"; success: false; errorMessage: string; metadata: { ipAddress: string; userAgent: string; correlationId: any; complianceFlags: string[]; sensitivity: "internal"; retentionPeriod: number; }; }' but required in type 'Omit<ComplianceAuditLog, "id" | "eventId" | "hash" | "previousHash">'.
+compliance-service.ts(168,32): error TS2345: Argument of type '{ userId: string; userType: string; action: string; resource: string; operation: "read"; success: true; metadata: { ipAddress: string; userAgent: string; correlationId: any; complianceFlags: string[]; sensitivity: "internal"; retentionPeriod: number; }; }' is not assignable to parameter of type 'Omit<ComplianceAuditLog, "id" | "eventId" | "hash" | "previousHash">'.
+  Property 'timestamp' is missing in type '{ userId: string; userType: string; action: string; resource: string; operation: "read"; success: true; metadata: { ipAddress: string; userAgent: string; correlationId: any; complianceFlags: string[]; sensitivity: "internal"; retentionPeriod: number; }; }' but required in type 'Omit<ComplianceAuditLog, "id" | "eventId" | "hash" | "previousHash">'.
+compliance-service.ts(187,46): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'LogContext | Error | undefined'.
+compliance-service.ts(221,47): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'LogContext | Error | undefined'.
+compliance-service.ts(321,32): error TS2345: Argument of type '{ userId: string; userType: string; action: string; resource: string; operation: "export"; success: true; metadata: any; }' is not assignable to parameter of type 'Omit<ComplianceAuditLog, "id" | "eventId" | "hash" | "previousHash">'.
+  Property 'timestamp' is missing in type '{ userId: string; userType: string; action: string; resource: string; operation: "export"; success: true; metadata: any; }' but required in type 'Omit<ComplianceAuditLog, "id" | "eventId" | "hash" | "previousHash">'.
+compliance-service.ts(411,32): error TS2345: Argument of type '{ userId: string; userType: string; action: string; resource: string; operation: "delete"; success: true; metadata: any; }' is not assignable to parameter of type 'Omit<ComplianceAuditLog, "id" | "eventId" | "hash" | "previousHash">'.
+  Property 'timestamp' is missing in type '{ userId: string; userType: string; action: string; resource: string; operation: "delete"; success: true; metadata: any; }' but required in type 'Omit<ComplianceAuditLog, "id" | "eventId" | "hash" | "previousHash">'.

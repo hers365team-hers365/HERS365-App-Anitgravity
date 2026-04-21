@@ -54,7 +54,7 @@ export class ComplianceService {
       const correlationId = req.headers['x-correlation-id'] as string ||
                            req.headers['x-request-id'] as string ||
                            uuidv4();
-      req.correlationId = correlationId;
+      (req as any).correlationId = correlationId;
       res.setHeader('x-correlation-id', correlationId);
       next();
     });
@@ -128,9 +128,12 @@ export class ComplianceService {
           metadata: {
             ipAddress: req.ip || 'unknown',
             userAgent: req.headers['user-agent'] as string || 'unknown',
-            correlationId: req.correlationId!,
-            complianceFlags: ['gdpr']
-          }
+            correlationId: (req as any).correlationId!,
+            complianceFlags: ['gdpr'],
+            sensitivity: 'internal' as const,
+            retentionPeriod: 365
+          },
+          timestamp: new Date().toISOString()
         });
 
         res.status(401).json({ error: 'Authentication required' });
@@ -151,9 +154,12 @@ export class ComplianceService {
           metadata: {
             ipAddress: req.ip || 'unknown',
             userAgent: req.headers['user-agent'] as string || 'unknown',
-            correlationId: req.correlationId!,
-            complianceFlags: ['gdpr', userType === 'athlete' ? 'coppa' : undefined].filter(Boolean) as string[]
-          }
+            correlationId: (req as any).correlationId!,
+            complianceFlags: ['gdpr', userType === 'athlete' ? 'coppa' : undefined].filter(Boolean) as string[],
+            sensitivity: 'internal' as const,
+            retentionPeriod: 365
+          },
+          timestamp: new Date().toISOString()
         });
 
         res.status(403).json({ error: 'Access denied' });
@@ -171,14 +177,17 @@ export class ComplianceService {
         metadata: {
           ipAddress: req.ip || 'unknown',
           userAgent: req.headers['user-agent'] as string || 'unknown',
-          correlationId: req.correlationId!,
-          complianceFlags: []
-        }
+          correlationId: (req as any).correlationId!,
+          complianceFlags: [] as string[],
+          sensitivity: 'internal' as const,
+          retentionPeriod: 30
+        },
+        timestamp: new Date().toISOString()
       });
 
       next();
     } catch (error) {
-      logger.error('RBAC middleware error:', error);
+      logger.error('RBAC middleware error:', error as Error);
       res.status(500).json({ error: 'Authorization error' });
     }
   }
@@ -212,7 +221,7 @@ export class ComplianceService {
 
       return false;
     } catch (error) {
-      logger.error('Permission check error:', error);
+      logger.error('Permission check error:', error as Error);
       return false;
     }
   }
@@ -286,7 +295,6 @@ export class ComplianceService {
       // Store request
       const container = this.cosmosClient.getContainer('audit-logs');
       await container.items.create({
-        id: request.id,
         type: 'data_export_request',
         ...request,
         ttl: 30 * 24 * 60 * 60 // 30 days
@@ -299,7 +307,7 @@ export class ComplianceService {
         aggregateId: request.id,
         aggregateType: 'DataExportRequest',
         timestamp: new Date().toISOString(),
-        correlationId: req.correlationId!,
+        correlationId: (req as any).correlationId!,
         userId: request.userId,
         userType: request.userType,
         source: 'compliance-service',
@@ -323,10 +331,13 @@ export class ComplianceService {
         metadata: {
           ipAddress: req.ip || 'unknown',
           userAgent: req.headers['user-agent'] as string || 'unknown',
-          correlationId: req.correlationId!,
+          correlationId: (req as any).correlationId!,
           complianceFlags: [request.complianceFramework.toLowerCase()],
-          requestId: request.id
-        }
+          requestId: request.id,
+          sensitivity: 'confidential' as const,
+          retentionPeriod: 2555 // 7 years
+        } as any,
+        timestamp: new Date().toISOString()
       });
 
       res.status(201).json({
@@ -336,7 +347,7 @@ export class ComplianceService {
       });
 
     } catch (error) {
-      logger.error('Data export request error:', error);
+      logger.error('Data export request error:', error as Error);
       res.status(500).json({ error: 'Failed to create export request' });
     }
   }
@@ -376,7 +387,6 @@ export class ComplianceService {
       // Store request
       const container = this.cosmosClient.getContainer('audit-logs');
       await container.items.create({
-        id: request.id,
         type: 'data_deletion_request',
         ...request
       });
@@ -388,7 +398,7 @@ export class ComplianceService {
         aggregateId: request.id,
         aggregateType: 'DataDeletionRequest',
         timestamp: new Date().toISOString(),
-        correlationId: req.correlationId!,
+        correlationId: (req as any).correlationId!,
         userId: request.userId,
         userType: request.userType,
         source: 'compliance-service',
@@ -412,11 +422,14 @@ export class ComplianceService {
         metadata: {
           ipAddress: req.ip || 'unknown',
           userAgent: req.headers['user-agent'] as string || 'unknown',
-          correlationId: req.correlationId!,
+          correlationId: (req as any).correlationId!,
           complianceFlags: [request.complianceFramework.toLowerCase()],
           deletionType: request.deletionType,
-          requestId: request.id
-        }
+          requestId: request.id,
+          sensitivity: 'confidential' as const,
+          retentionPeriod: 2555
+        } as any,
+        timestamp: new Date().toISOString()
       });
 
       res.status(201).json({
@@ -426,7 +439,7 @@ export class ComplianceService {
       });
 
     } catch (error) {
-      logger.error('Data deletion request error:', error);
+      logger.error('Data deletion request error:', error as Error);
       res.status(500).json({ error: 'Failed to create deletion request' });
     }
   }
@@ -486,18 +499,17 @@ export class ComplianceService {
       // Store in immutable audit log
       const container = this.cosmosClient.getContainer('audit-logs');
       await container.items.create({
-        id: auditEvent.id,
         type: 'audit_event',
         partitionKey: this.auditChain.getPartitionKey(timestamp),
         ...auditEvent,
-        ttl: auditEvent.metadata.retentionPeriod * 24 * 60 * 60 // Convert days to seconds
+        ttl: (auditEvent.metadata.retentionPeriod || 365) * 24 * 60 * 60 // Default to 1 year if not specified
       });
 
       // Update chain
       this.auditChain.updateLatestHash(hash);
 
     } catch (error) {
-      logger.error('Audit logging error:', error);
+      logger.error('Audit logging error:', error as Error);
       // Audit logging failures are critical - should trigger alerts
       throw error;
     }
@@ -646,5 +658,3 @@ class AuditChain {
 }
 
 // ─── EXPORT SERVICE ──────────────────────────────────────────────────────────
-
-export { ComplianceService };

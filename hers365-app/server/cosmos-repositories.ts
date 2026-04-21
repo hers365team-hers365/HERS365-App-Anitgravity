@@ -37,7 +37,7 @@ export abstract class CosmosRepository<T extends { id: string }> {
 
       return resource || null;
     } catch (error) {
-      logger.error(`Error reading ${this.containerName}:${id}:`, error);
+      logger.error(`Error reading ${this.containerName}:${id}:`, error as Error);
       throw error;
     }
   }
@@ -52,7 +52,7 @@ export abstract class CosmosRepository<T extends { id: string }> {
       id: uuidv4(),
       createdAt: now,
       updatedAt: now
-    } as T;
+    } as unknown as T;
 
     // Add partition key if not provided
     if (!(fullDocument as any).partitionKey) {
@@ -70,7 +70,7 @@ export abstract class CosmosRepository<T extends { id: string }> {
 
       return resource!;
     } catch (error) {
-      logger.error(`Error creating ${this.containerName}:`, error);
+      logger.error(`Error creating ${this.containerName}:`, error as Error);
       throw error;
     }
   }
@@ -106,7 +106,7 @@ export abstract class CosmosRepository<T extends { id: string }> {
 
       return resource!;
     } catch (error) {
-      logger.error(`Error updating ${this.containerName}:${id}:`, error);
+      logger.error(`Error updating ${this.containerName}:${id}:`, error as Error);
       throw error;
     }
   }
@@ -118,7 +118,7 @@ export abstract class CosmosRepository<T extends { id: string }> {
     try {
       await this.container.item(id, partitionKey || id).delete();
     } catch (error) {
-      logger.error(`Error deleting ${this.containerName}:${id}:`, error);
+      logger.error(`Error deleting ${this.containerName}:${id}:`, error as Error);
       throw error;
     }
   }
@@ -128,7 +128,7 @@ export abstract class CosmosRepository<T extends { id: string }> {
    */
   protected async executeQuery(
     querySpec: SqlQuerySpec,
-    options: FeedOptions & RequestOptions = {}
+    options: FeedOptions = {}
   ): Promise<any> {
     const startTime = Date.now();
 
@@ -136,13 +136,12 @@ export abstract class CosmosRepository<T extends { id: string }> {
       const result = await this.container.items.query(querySpec, options).fetchAll();
       const latency = Date.now() - startTime;
 
-      // Log slow queries (>100ms for cross-partition, >50ms for single partition)
-      const threshold = options.enableCrossPartitionQuery ? 100 : 50;
+      // Log slow queries (>100ms)
+      const threshold = 100;
       if (latency > threshold) {
         logger.warn(`Slow query: ${latency}ms`, {
           container: this.containerName,
           query: querySpec.query.substring(0, 100),
-          crossPartition: options.enableCrossPartitionQuery,
           itemCount: result.resources.length
         });
       }
@@ -263,7 +262,6 @@ export class UserRepository extends CosmosRepository<UserDocument> {
 
     const options: FeedOptions = {
       maxItemCount: pageSize,
-      enableCrossPartitionQuery: true
     };
 
     if (continuationToken) {
@@ -281,9 +279,9 @@ export class UserRepository extends CosmosRepository<UserDocument> {
    * Bulk user creation using stored procedure
    */
   async bulkCreateUsers(users: Omit<UserDocument, 'id' | 'createdAt' | 'updatedAt' | 'partitionKey'>[]): Promise<any> {
-    const procedureResult = await this.container.scripts.storedProcedures
-      .getStoredProcedure('bulkUserImport')
-      .execute(users);
+    const partitionKey = users[0] ? (users[0] as any).userId || 'bulk' : 'bulk';
+    const procedureResult = await this.container.scripts.storedProcedure('bulkUserImport')
+      .execute(partitionKey, [users]);
 
     return procedureResult.resource;
   }
@@ -407,7 +405,6 @@ export class PostRepository extends CosmosRepository<PostDocument> {
     const querySpec: SqlQuerySpec = { query, parameters };
 
     const result = await this.executeQuery(querySpec, {
-      enableCrossPartitionQuery: true,
       maxItemCount: pageSize
     });
 
@@ -522,7 +519,6 @@ export class MessageRepository extends CosmosRepository<MessageDocument> {
     const querySpec: SqlQuerySpec = { query, parameters };
 
     const result = await this.executeQuery(querySpec, {
-      enableCrossPartitionQuery: true,
       maxItemCount: pageSize
     });
 
@@ -575,7 +571,6 @@ export class MessageRepository extends CosmosRepository<MessageDocument> {
     };
 
     const result = await this.executeQuery(querySpec, {
-      enableCrossPartitionQuery: true
     });
 
     return result.resources[0] || 0;
@@ -689,7 +684,6 @@ export class SearchRepository extends CosmosRepository<SearchDocument> {
     const querySpec: SqlQuerySpec = { query, parameters };
 
     const result = await this.executeQuery(querySpec, {
-      enableCrossPartitionQuery: true,
       maxItemCount: pageSize
     });
 
@@ -750,7 +744,11 @@ export class AuditRepository extends CosmosRepository<AuditDocument> {
    * Log audit event - Optimized for compliance
    */
   async logEvent(event: Omit<AuditDocument, 'id' | 'partitionKey'>): Promise<void> {
-    await this.create(event);
+    const partitionKey = this.generatePartitionKey(event as any);
+    await this.create({
+      ...event,
+      partitionKey
+    } as any);
   }
 
   /**
@@ -784,7 +782,6 @@ export class AuditRepository extends CosmosRepository<AuditDocument> {
     const querySpec: SqlQuerySpec = { query, parameters };
 
     const result = await this.executeQuery(querySpec, {
-      enableCrossPartitionQuery: true,
       maxItemCount: pageSize
     });
 
@@ -813,7 +810,6 @@ export class AuditRepository extends CosmosRepository<AuditDocument> {
     };
 
     const result = await this.executeQuery(querySpec, {
-      enableCrossPartitionQuery: true,
       maxItemCount: 1000
     });
 
@@ -867,4 +863,4 @@ export class RepositoryFactory {
   }
 }
 
-export type { UserDocument, PostDocument, MessageDocument, SearchDocument, AuditDocument };
+// End of file - duplicates removed

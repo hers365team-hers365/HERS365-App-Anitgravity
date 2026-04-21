@@ -47,7 +47,7 @@ export abstract class Microservice {
     this.app.use(async (req: Request, res: Response, next: NextFunction) => {
       const idempotencyKey = req.headers['idempotency-key'] as string;
       if (idempotencyKey) {
-        req.idempotencyKey = idempotencyKey;
+        (req as any).idempotencyKey = idempotencyKey;
       }
       next();
     });
@@ -97,7 +97,7 @@ export abstract class Microservice {
       await this.registerService();
 
     } catch (error) {
-      logger.error(`Failed to start ${this.serviceName} service:`, error);
+      logger.error(`Failed to start ${this.serviceName} service:`, error as Error);
       throw error;
     }
   }
@@ -137,7 +137,7 @@ export abstract class Microservice {
       logger.info(`Successfully processed event: ${event.eventType} (${event.id})`);
 
     } catch (error) {
-      logger.error(`Error processing event ${message.messageId}:`, error);
+      logger.error(`Error processing event ${message.messageId}:`, error as Error);
       throw error;
     }
   }
@@ -251,7 +251,7 @@ export class AuthenticationService extends Microservice {
       });
 
     } catch (error) {
-      logger.error('Login error:', error);
+      logger.error('Login error:', error as Error);
       res.status(500).json({ error: 'Authentication failed' });
     }
   }

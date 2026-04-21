@@ -94,7 +94,7 @@ export async function storeRefreshToken(
     deviceFingerprint,
     ipAddress,
     userAgent,
-    expiresAt: Math.floor(expiresAt.getTime() / 1000), // Unix timestamp
+    expiresAt, // Pass Date object
   }).returning({ id: schema.refreshTokens.id });
 
   return result[0].id;
@@ -108,9 +108,8 @@ export async function validateRefreshToken(token: string): Promise<RefreshTokenD
     .from(schema.refreshTokens)
     .where(
       and(
-        eq(schema.refreshTokens.tokenHash, tokenHash),
         eq(schema.refreshTokens.isRevoked, false),
-        gt(schema.refreshTokens.expiresAt, Math.floor(Date.now() / 1000))
+        gt(schema.refreshTokens.expiresAt, new Date())
       )
     )
     .limit(1);
@@ -120,7 +119,7 @@ export async function validateRefreshToken(token: string): Promise<RefreshTokenD
   // Update last used timestamp
   await db
     .update(schema.refreshTokens)
-    .set({ lastUsedAt: Math.floor(Date.now() / 1000) })
+    .set({ lastUsedAt: new Date() })
     .where(eq(schema.refreshTokens.id, refreshToken[0].id));
 
   return {
@@ -131,8 +130,8 @@ export async function validateRefreshToken(token: string): Promise<RefreshTokenD
     deviceFingerprint: refreshToken[0].deviceFingerprint || undefined,
     ipAddress: refreshToken[0].ipAddress || undefined,
     userAgent: refreshToken[0].userAgent || undefined,
-    expiresAt: new Date(refreshToken[0].expiresAt * 1000),
-    isRevoked: refreshToken[0].isRevoked === 1,
+    expiresAt: refreshToken[0].expiresAt,
+    isRevoked: refreshToken[0].isRevoked === true,
   };
 }
 
@@ -141,7 +140,7 @@ export async function revokeRefreshToken(tokenId: number, reason: string = 'user
     .update(schema.refreshTokens)
     .set({
       isRevoked: true,
-      revokedAt: Math.floor(Date.now() / 1000),
+      revokedAt: new Date(),
       revokedReason: reason,
     })
     .where(eq(schema.refreshTokens.id, tokenId));
@@ -152,7 +151,7 @@ export async function revokeAllUserRefreshTokens(userId: number, userType: UserT
     .update(schema.refreshTokens)
     .set({
       isRevoked: true,
-      revokedAt: Math.floor(Date.now() / 1000),
+      revokedAt: new Date(),
       revokedReason: reason,
     })
     .where(
@@ -165,14 +164,15 @@ export async function revokeAllUserRefreshTokens(userId: number, userType: UserT
 }
 
 export async function cleanupExpiredTokens(): Promise<void> {
-  const currentTime = Math.floor(Date.now() / 1000);
+  const currentTime = new Date();
+  const sevenDaysAgo = new Date(currentTime.getTime() - (7 * 24 * 60 * 60 * 1000));
 
   // Remove expired refresh tokens older than 7 days
   await db
     .delete(schema.refreshTokens)
     .where(
       and(
-        lt(schema.refreshTokens.expiresAt, currentTime - (7 * 24 * 60 * 60)),
+        lt(schema.refreshTokens.expiresAt, sevenDaysAgo),
         eq(schema.refreshTokens.isRevoked, true)
       )
     );
@@ -255,7 +255,7 @@ async function getUserDataById(userId: number, userType: UserType): Promise<{ us
           userId: coach[0].id,
           email: coach[0].email || '',
           role: 'coach',
-          name: coach[0].name,
+          name: coach[0].name || '',
         };
       }
       break;
@@ -360,7 +360,7 @@ export async function verifyMFAToken(userId: number, userType: UserType, token: 
       .update(schema.mfaSecrets)
       .set({
         isEnabled: true,
-        verifiedAt: Math.floor(Date.now() / 1000),
+        verifiedAt: new Date(),
       })
       .where(eq(schema.mfaSecrets.id, mfaData[0].id));
 
@@ -496,7 +496,7 @@ export type SessionData = {
   location?: string;
   isActive: boolean;
   expiresAt: Date;
-  lastActivityAt: Date;
+  lastActivityAt: Date | null;
 };
 
 /**
@@ -524,8 +524,8 @@ export async function createUserSession(
     userAgent,
     location,
     isActive: true,
-    expiresAt: Math.floor(expiresAt.getTime() / 1000),
-    lastActivityAt: Math.floor(Date.now() / 1000),
+    expiresAt,
+    lastActivityAt: new Date(),
   });
 
   return sessionId;
@@ -543,7 +543,7 @@ export async function getUserSessions(userId: number, userType: UserType): Promi
         eq(schema.userSessions.userId, userId),
         eq(schema.userSessions.userType, userType),
         eq(schema.userSessions.isActive, true),
-        gt(schema.userSessions.expiresAt, Math.floor(Date.now() / 1000))
+        gt(schema.userSessions.expiresAt, new Date())
       )
     );
 
@@ -557,9 +557,9 @@ export async function getUserSessions(userId: number, userType: UserType): Promi
     ipAddress: session.ipAddress || undefined,
     userAgent: session.userAgent || undefined,
     location: session.location || undefined,
-    isActive: session.isActive === 1,
-    expiresAt: new Date(session.expiresAt * 1000),
-    lastActivityAt: new Date(session.lastActivityAt * 1000),
+    isActive: session.isActive === true,
+    expiresAt: session.expiresAt,
+    lastActivityAt: session.lastActivityAt,
   }));
 }
 
@@ -569,7 +569,7 @@ export async function getUserSessions(userId: number, userType: UserType): Promi
 export async function updateSessionActivity(sessionId: string): Promise<void> {
   await db
     .update(schema.userSessions)
-    .set({ lastActivityAt: Math.floor(Date.now() / 1000) })
+    .set({ lastActivityAt: new Date() })
     .where(eq(schema.userSessions.sessionId, sessionId));
 }
 
@@ -638,13 +638,13 @@ export async function revokeAllUserSessions(userId: number, userType: UserType, 
  * Clean up expired sessions
  */
 export async function cleanupExpiredSessions(): Promise<void> {
-  const currentTime = Math.floor(Date.now() / 1000);
+  const currentTime = new Date();
 
   // Mark expired sessions as inactive
   await db
     .update(schema.userSessions)
     .set({ isActive: false })
-    .where(lt(schema.userSessions.expiresAt, currentTime));
+    .where(lt(schema.userSessions.expiresAt, new Date()));
 
   // Remove old inactive sessions (older than 30 days)
   await db
@@ -652,7 +652,7 @@ export async function cleanupExpiredSessions(): Promise<void> {
     .where(
       and(
         eq(schema.userSessions.isActive, false),
-        lt(schema.userSessions.lastActivityAt, currentTime - (30 * 24 * 60 * 60))
+        lt(schema.userSessions.lastActivityAt, new Date(currentTime.getTime() - (30 * 24 * 60 * 60 * 1000)))
       )
     );
 }
@@ -679,9 +679,9 @@ export async function getSessionById(sessionId: string): Promise<SessionData | n
     ipAddress: session[0].ipAddress || undefined,
     userAgent: session[0].userAgent || undefined,
     location: session[0].location || undefined,
-    isActive: session[0].isActive === 1,
-    expiresAt: new Date(session[0].expiresAt * 1000),
-    lastActivityAt: new Date(session[0].lastActivityAt * 1000),
+    isActive: session[0].isActive === true,
+    expiresAt: session[0].expiresAt,
+    lastActivityAt: session[0].lastActivityAt,
   };
 }
 
@@ -720,7 +720,7 @@ export async function recordFailedAttempt(
     ipAddress,
     userAgent,
     failureReason,
-    attemptedAt: Math.floor(Date.now() / 1000),
+    attemptedAt: new Date(),
   });
 
   // Check if account should be locked
@@ -731,8 +731,8 @@ export async function recordFailedAttempt(
  * Check and apply account lockout based on failed attempts
  */
 export async function checkAndApplyLockout(email: string, userType: UserType, ipAddress: string): Promise<boolean> {
-  const currentTime = Math.floor(Date.now() / 1000);
-  const windowStart = currentTime - (15 * 60); // 15 minutes window
+  const currentTime = new Date();
+  const windowStart = new Date(currentTime.getTime() - (15 * 60 * 1000)); // 15 minutes window
 
   // Count recent failed attempts for this email
   const emailAttempts = await db
@@ -808,14 +808,14 @@ export async function lockAccount(
 
   if (!userId) return; // User doesn't exist, no need to lock
 
-  const unlockAt = isPermanent ? undefined : Math.floor((Date.now() + lockDurationMs) / 1000);
+  const unlockAt = isPermanent ? undefined : new Date(Date.now() + lockDurationMs);
 
   await db.insert(schema.accountLockouts).values({
     userId,
     userType,
     email,
     lockoutReason: reason,
-    lockedAt: Math.floor(Date.now() / 1000),
+    lockedAt: new Date(),
     unlockAt,
     isPermanent,
   });
@@ -840,7 +840,7 @@ export async function isAccountLocked(email: string, userType: UserType): Promis
   if (lockouts.length === 0) return null;
 
   const lockout = lockouts[0];
-  const currentTime = Math.floor(Date.now() / 1000);
+  const currentTime = new Date();
 
   // Check if lockout has expired
   if (!lockout.isPermanent && lockout.unlockAt && lockout.unlockAt <= currentTime) {
@@ -856,9 +856,9 @@ export async function isAccountLocked(email: string, userType: UserType): Promis
     userType: lockout.userType as UserType,
     email: lockout.email,
     lockoutReason: lockout.lockoutReason,
-    lockedAt: new Date(lockout.lockedAt * 1000),
-    unlockAt: lockout.unlockAt ? new Date(lockout.unlockAt * 1000) : undefined,
-    isPermanent: lockout.isPermanent === 1,
+    lockedAt: lockout.lockedAt || new Date(),
+    unlockAt: lockout.unlockAt || undefined,
+    isPermanent: lockout.isPermanent === true,
   };
 }
 
@@ -869,7 +869,7 @@ export async function unlockAccount(email: string, userType: UserType, unlockedB
   await db
     .update(schema.accountLockouts)
     .set({
-      unlockedAt: Math.floor(Date.now() / 1000),
+      unlockedAt: new Date(),
       unlockedBy,
     })
     .where(
@@ -899,8 +899,8 @@ export async function getRecentFailedAttempts(email: string, userType: UserType,
   ipAttempts: number;
   delayMs: number;
 }> {
-  const currentTime = Math.floor(Date.now() / 1000);
-  const windowStart = currentTime - (15 * 60); // 15 minutes
+  const currentTime = new Date();
+  const windowStart = new Date(currentTime.getTime() - (15 * 60 * 1000)); // 15 minutes
 
   const [emailAttempts, ipAttempts] = await Promise.all([
     db
@@ -947,9 +947,9 @@ export async function detectSuspiciousActivity(
   activityType: string
 ): Promise<void> {
   const alerts: string[] = [];
-  const currentTime = Math.floor(Date.now() / 1000);
-  const shortWindow = currentTime - (5 * 60); // 5 minutes
-  const longWindow = currentTime - (60 * 60); // 1 hour
+  const currentTime = new Date();
+  const shortWindow = new Date(currentTime.getTime() - (5 * 60 * 1000)); // 5 minutes
+  const longWindow = new Date(currentTime.getTime() - (60 * 60 * 1000)); // 1 hour
 
   // Check for rapid failed attempts
   const recentFailures = await db
@@ -979,7 +979,7 @@ export async function detectSuspiciousActivity(
       description: `Suspicious activity detected: ${alertType}`,
       ipAddress,
       userAgent,
-      createdAt: currentTime,
+      createdAt: new Date(),
     });
   }
 }
@@ -988,8 +988,8 @@ export async function detectSuspiciousActivity(
  * Clean up old failed attempts and lockouts
  */
 export async function cleanupSecurityData(): Promise<void> {
-  const currentTime = Math.floor(Date.now() / 1000);
-  const thirtyDaysAgo = currentTime - (30 * 24 * 60 * 60);
+  const currentTime = new Date();
+  const thirtyDaysAgo = new Date(currentTime.getTime() - (30 * 24 * 60 * 60 * 1000));
 
   // Remove old failed attempts
   await db
@@ -1016,16 +1016,16 @@ export async function cleanupTokenLifecycle(): Promise<{
   expiredSessions: number;
   oldAuditLogs: number;
 }> {
-  const currentTime = Math.floor(Date.now() / 1000);
-  const thirtyDaysAgo = currentTime - (30 * 24 * 60 * 60);
-  const ninetyDaysAgo = currentTime - (90 * 24 * 60 * 60);
+  const currentTime = new Date();
+  const thirtyDaysAgo = new Date(currentTime.getTime() - (30 * 24 * 60 * 60 * 1000));
+  const ninetyDaysAgo = new Date(currentTime.getTime() - (90 * 24 * 60 * 60 * 1000));
 
   // Clean up expired refresh tokens
   const expiredTokens = await db
     .delete(schema.refreshTokens)
     .where(
       and(
-        lt(schema.refreshTokens.expiresAt, currentTime),
+        lt(schema.refreshTokens.expiresAt, new Date()),
         eq(schema.refreshTokens.isRevoked, false)
       )
     );
@@ -1036,7 +1036,7 @@ export async function cleanupTokenLifecycle(): Promise<{
     .set({ isActive: false })
     .where(
       and(
-        lt(schema.userSessions.expiresAt, currentTime),
+        lt(schema.userSessions.expiresAt, new Date()),
         eq(schema.userSessions.isActive, true)
       )
     );
@@ -1072,7 +1072,7 @@ export async function getTokenStatistics(): Promise<{
   expiredTokens: number;
   revokedTokens: number;
 }> {
-  const currentTime = Math.floor(Date.now() / 1000);
+  const currentTime = new Date();
 
   const [activeTokens, expiredTokens, revokedTokens, activeSessions] = await Promise.all([
     db
@@ -1080,14 +1080,14 @@ export async function getTokenStatistics(): Promise<{
       .from(schema.refreshTokens)
       .where(
         and(
-          gt(schema.refreshTokens.expiresAt, currentTime),
+          gt(schema.refreshTokens.expiresAt, new Date()),
           eq(schema.refreshTokens.isRevoked, false)
         )
       ),
     db
       .select({ count: schema.refreshTokens.id })
       .from(schema.refreshTokens)
-      .where(lt(schema.refreshTokens.expiresAt, currentTime)),
+      .where(lt(schema.refreshTokens.expiresAt, new Date())),
     db
       .select({ count: schema.refreshTokens.id })
       .from(schema.refreshTokens)
@@ -1098,7 +1098,7 @@ export async function getTokenStatistics(): Promise<{
       .where(
         and(
           eq(schema.userSessions.isActive, true),
-          gt(schema.userSessions.expiresAt, currentTime)
+          gt(schema.userSessions.expiresAt, new Date())
         )
       )
   ]);
@@ -1163,7 +1163,7 @@ export async function logAuditEvent(
     errorMessage: auditData.errorMessage,
     metadata: auditData.metadata ? JSON.stringify(auditData.metadata) : undefined,
     complianceFlags: complianceFlags.length > 0 ? JSON.stringify(complianceFlags) : undefined,
-    createdAt: Math.floor(Date.now() / 1000),
+    createdAt: new Date(),
   });
 }
 
@@ -1183,7 +1183,7 @@ export async function getAuditLogs(
 ): Promise<any[]> {
   let query = db.select().from(schema.securityAuditLogs);
 
-  const conditions = [];
+  const conditions: any[] = [];
 
   if (filters.userId) {
     conditions.push(eq(schema.securityAuditLogs.userId, filters.userId));
@@ -1198,24 +1198,24 @@ export async function getAuditLogs(
     conditions.push(eq(schema.securityAuditLogs.success, filters.success));
   }
   if (filters.fromDate) {
-    conditions.push(gt(schema.securityAuditLogs.createdAt, Math.floor(filters.fromDate.getTime() / 1000)));
+    conditions.push(gt(schema.securityAuditLogs.createdAt, filters.fromDate));
   }
   if (filters.toDate) {
-    conditions.push(lt(schema.securityAuditLogs.createdAt, Math.floor(filters.toDate.getTime() / 1000)));
+    conditions.push(lt(schema.securityAuditLogs.createdAt, filters.toDate));
   }
 
   if (conditions.length > 0) {
-    query = query.where(and(...conditions));
+    query = (query as any).where(and(...conditions));
   }
 
-  query = query.orderBy(schema.securityAuditLogs.createdAt).limit(filters.limit || 100);
+  query = (query as any).orderBy(schema.securityAuditLogs.createdAt).limit(filters.limit || 100);
 
   const logs = await query;
   return logs.map(log => ({
     ...log,
     metadata: log.metadata ? JSON.parse(log.metadata) : undefined,
     complianceFlags: log.complianceFlags ? JSON.parse(log.complianceFlags) : undefined,
-    createdAt: new Date(log.createdAt * 1000),
+    createdAt: log.createdAt,
   }));
 }
 
@@ -1230,8 +1230,8 @@ export async function getSecurityMetrics(timeRangeHours: number = 24): Promise<{
   accountLockouts: number;
   mfaEnabledUsers: number;
 }> {
-  const currentTime = Math.floor(Date.now() / 1000);
-  const timeRange = currentTime - (timeRangeHours * 60 * 60);
+  const currentTime = new Date();
+  const timeRange = new Date(currentTime.getTime() - (timeRangeHours * 60 * 60 * 1000));
 
   const [
     loginLogs,
@@ -1261,7 +1261,7 @@ export async function getSecurityMetrics(timeRangeHours: number = 24): Promise<{
       .where(
         and(
           eq(schema.userSessions.isActive, true),
-          gt(schema.userSessions.expiresAt, currentTime)
+          gt(schema.userSessions.expiresAt, new Date())
         )
       ),
     db

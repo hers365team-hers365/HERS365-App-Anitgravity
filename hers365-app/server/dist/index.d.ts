@@ -1,2 +1,6 @@
-export declare function broadcast(channel: string, data: any): void;
-export declare function sendToUser(userId: string, channel: string, data: any): void;
+/**
+ * HERS365 ENTERPRISE PLATFORM
+ * Event-driven microservices with Cosmos DB optimization
+ * Sub-200ms latency at enterprise scale
+ */
+export {};

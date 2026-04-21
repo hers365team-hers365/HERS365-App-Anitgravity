@@ -44,7 +44,7 @@ export class ComplianceMonitor {
       try {
         await this.runComplianceChecks();
       } catch (error) {
-        logger.error('Compliance monitoring error:', error);
+        logger.error('Compliance monitoring error:', error as Error);
       }
     }, 4 * 60 * 60 * 1000); // 4 hours
 
@@ -53,7 +53,7 @@ export class ComplianceMonitor {
       try {
         await this.runRealtimeChecks();
       } catch (error) {
-        logger.error('Real-time compliance check error:', error);
+        logger.error('Real-time compliance check error:', error as Error);
       }
     }, 5 * 60 * 1000); // 5 minutes
 
@@ -74,7 +74,7 @@ export class ComplianceMonitor {
   /**
    * Run comprehensive compliance checks
    */
-  private async runComplianceChecks(): Promise<void> {
+  public async runComplianceChecks(): Promise<any[]> {
     logger.info('Running comprehensive compliance checks');
 
     const checks = await Promise.allSettled([
@@ -87,7 +87,7 @@ export class ComplianceMonitor {
     ]);
 
     const results = checks.map((result, index) => ({
-      framework: ['COPPA', 'FERPA', 'GDPR', 'DataRetention', 'AccessControl', 'AuditLogging'][index],
+      framework: (['COPPA', 'FERPA', 'GDPR', 'DataRetention', 'AccessControl', 'AuditLogging'] as const)[index],
       success: result.status === 'fulfilled',
       error: result.status === 'rejected' ? result.reason : null
     }));
@@ -106,10 +106,16 @@ export class ComplianceMonitor {
     // Store report
     await this.storeComplianceReport(report);
 
+    const checkResults = checks
+      .filter((r): r is PromiseFulfilledResult<any[]> => r.status === 'fulfilled')
+      .flatMap(r => r.value);
+
     logger.info('Compliance checks completed', {
-      frameworksChecked: results.length,
-      violationsFound: violations.length
+      frameworks: results.length,
+      violations: violations.length
     });
+
+    return checkResults;
   }
 
   /**
@@ -371,6 +377,7 @@ export class ComplianceMonitor {
     if (suspiciousAccess.length > 0) {
       await this.reportDataBreach({
         incidentId: `suspicious_access_${Date.now()}`,
+        discoveredAt: new Date().toISOString(),
         affectedUsers: suspiciousAccess.length,
         affectedUserTypes: ['athlete', 'parent', 'coach'],
         dataCategories: ['personal_data', 'communications'],
@@ -400,7 +407,6 @@ export class ComplianceMonitor {
 
     if (massDataExports > 10) { // More than 10 exports in an hour
       await this.reportViolation({
-        id: uuidv4(),
         framework: 'GDPR',
         requirement: 'Data Access Monitoring',
         severity: 'medium',
@@ -419,7 +425,6 @@ export class ComplianceMonitor {
 
     if (expiringConsents > 0) {
       await this.reportViolation({
-        id: uuidv4(),
         framework: 'GDPR',
         requirement: 'Consent Management',
         severity: 'low',
@@ -438,7 +443,6 @@ export class ComplianceMonitor {
 
     for (const op of highRiskOps) {
       await this.reportViolation({
-        id: uuidv4(),
         framework: op.framework,
         requirement: op.requirement,
         severity: op.severity,
@@ -462,10 +466,9 @@ export class ComplianceMonitor {
     // Store violation
     const container = this.cosmosClient.getContainer('audit-logs');
     await container.items.create({
-      id: violationWithId.id,
+      ...violationWithId,
       type: 'compliance_violation',
       partitionKey: `violation_${new Date().toISOString().slice(0, 10)}_001`,
-      ...violationWithId,
       ttl: 365 * 24 * 60 * 60 // 1 year retention
     });
 
@@ -505,10 +508,9 @@ export class ComplianceMonitor {
     // Store breach incident
     const container = this.cosmosClient.getContainer('audit-logs');
     await container.items.create({
-      id: breachWithId.id,
+      ...breachWithId,
       type: 'data_breach_incident',
-      partitionKey: `breach_${new Date().toISOString().slice(0, 10)}_001`,
-      ...breachWithId
+      partitionKey: `breach_${new Date().toISOString().slice(0, 10)}_001`
     });
 
     // Publish breach event
@@ -591,10 +593,9 @@ export class ComplianceMonitor {
     const container = this.cosmosClient.getContainer('analytics');
 
     await container.items.create({
-      id: report.id,
+      ...report,
       type: 'compliance_report',
       partitionKey: `analytics_${new Date().toISOString().slice(0, 10)}_001`,
-      ...report,
       ttl: 365 * 24 * 60 * 60 // 1 year retention
     });
   }
@@ -722,5 +723,3 @@ export class ComplianceAlerting {
 }
 
 // ─── EXPORT MONITORING SYSTEM ────────────────────────────────────────────────
-
-export { ComplianceMonitor, ComplianceAlerting };

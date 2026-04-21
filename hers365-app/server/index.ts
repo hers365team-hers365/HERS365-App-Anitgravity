@@ -201,16 +201,16 @@ async function startApplication() {
 
     // Validate environment
     if (!process.env.AZURE_SERVICEBUS_CONNECTION_STRING && !process.env.AZURE_SERVICEBUS_NAMESPACE) {
-      logger.warn('Azure Service Bus not configured - running Cosmos DB only mode');
+      logger.warn('⚠️ Azure Service Bus not configured - running in local mode');
     }
 
     if (!process.env.COSMOS_ENDPOINT || !process.env.COSMOS_KEY) {
-      throw new Error('Cosmos DB configuration missing. Set COSMOS_ENDPOINT and COSMOS_KEY');
+      logger.warn('⚠️ Cosmos DB configuration missing - running in limited local mode');
+    } else {
+      // Initialize Cosmos DB API service
+      logger.info('📊 Initializing Cosmos DB API service...');
+      await cosmosAPIService.initialize();
     }
-
-    // Initialize Cosmos DB API service
-    logger.info('📊 Initializing Cosmos DB API service...');
-    await cosmosAPIService.initialize();
 
     // Start microservices (if configured)
     if (process.env.AZURE_SERVICEBUS_CONNECTION_STRING || process.env.AZURE_SERVICEBUS_NAMESPACE) {

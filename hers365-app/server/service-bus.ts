@@ -9,12 +9,14 @@ import {
   ServiceBusMessage,
   ServiceBusReceivedMessage,
   ServiceBusMessageBatch,
-  Receiver,
+  ServiceBusReceiver,
   CreateQueueOptions,
   CreateTopicOptions,
   CreateSubscriptionOptions
 } from '@azure/service-bus';
 import { DefaultAzureCredential } from '@azure/identity';
+import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
 import { logger } from './logger';
 import { BaseEvent, DomainEvent, StoredEvent } from './events';
 import { db } from './db';
@@ -84,14 +86,16 @@ export class AzureServiceBusClient {
     };
 
     if (this.config.connectionString) {
-      this.sbClient = new ServiceBusClient(this.config.connectionString, this.config.retryOptions);
+      this.sbClient = new ServiceBusClient(this.config.connectionString, {
+        retryOptions: this.config.retryOptions
+      });
       this.adminClient = new ServiceBusAdministrationClient(this.config.connectionString);
     } else if (this.config.fullyQualifiedNamespace) {
       const credential = new DefaultAzureCredential();
       this.sbClient = new ServiceBusClient(
         this.config.fullyQualifiedNamespace,
         credential,
-        this.config.retryOptions
+        { retryOptions: this.config.retryOptions }
       );
       this.adminClient = new ServiceBusAdministrationClient(
         this.config.fullyQualifiedNamespace,
@@ -164,7 +168,7 @@ export class AzureServiceBusClient {
 
       logger.info('Azure Service Bus infrastructure initialized successfully');
     } catch (error) {
-      logger.error('Failed to initialize Service Bus infrastructure:', error);
+      logger.error('Failed to initialize Service Bus infrastructure:', error as Error);
       throw error;
     }
   }
@@ -211,13 +215,13 @@ export class AzureServiceBusClient {
           aggregateId: event.aggregateId,
           aggregateType: event.aggregateType,
           version: event.version,
-          priority: event.metadata.priority || 'medium',
-          userId: event.userId,
-          userType: event.userType,
-          complianceFlags: event.metadata.complianceFlags?.join(','),
-          idempotencyKey: event.metadata.idempotencyKey
+          priority: event.metadata?.priority || 'medium',
+          userId: event.userId ?? null,
+          userType: event.userType ?? null,
+          complianceFlags: event.metadata?.complianceFlags?.join(',') ?? null,
+          idempotencyKey: event.metadata?.idempotencyKey ?? null
         },
-        timeToLive: event.metadata.ttl ? event.metadata.ttl * 1000 : undefined
+        timeToLive: event.metadata?.ttl ? event.metadata?.ttl * 1000 : undefined
       };
 
       // Publish to topic
@@ -228,7 +232,7 @@ export class AzureServiceBusClient {
       logger.info(`Published event: ${event.eventType} (${event.id}) to ${topicName}`);
 
     } catch (error) {
-      logger.error(`Failed to publish event ${event.id}:`, error);
+      logger.error(`Failed to publish event ${event.id}:`, error as Error);
       throw error;
     }
   }
@@ -266,13 +270,13 @@ export class AzureServiceBusClient {
               aggregateId: event.aggregateId,
               aggregateType: event.aggregateType,
               version: event.version,
-              priority: event.metadata.priority || 'medium',
-              userId: event.userId,
-              userType: event.userType,
-              complianceFlags: event.metadata.complianceFlags?.join(','),
-              idempotencyKey: event.metadata.idempotencyKey
+              priority: event.metadata?.priority || 'medium',
+              userId: event.userId ?? null,
+              userType: event.userType ?? null,
+              complianceFlags: event.metadata?.complianceFlags?.join(',') ?? null,
+              idempotencyKey: event.metadata?.idempotencyKey ?? null
             },
-            timeToLive: event.metadata.ttl ? event.metadata.ttl * 1000 : undefined
+            timeToLive: event.metadata?.ttl ? event.metadata?.ttl * 1000 : undefined
           };
 
           const added = batch.tryAddMessage(message);
@@ -293,7 +297,7 @@ export class AzureServiceBusClient {
         logger.info(`Published ${topicEvents.length} events to ${topicName}`);
 
       } catch (error) {
-        logger.error(`Failed to publish batch to ${topicName}:`, error);
+        logger.error(`Failed to publish batch to ${topicName}:`, error as Error);
         throw error;
       }
     }
@@ -358,7 +362,7 @@ export class AzureServiceBusClient {
         createdAt: new Date().toISOString()
       });
     } catch (error) {
-      logger.error(`Failed to store event ${event.id}:`, error);
+      logger.error(`Failed to store event ${event.id}:`, error as Error);
       throw error;
     }
   }
@@ -374,7 +378,7 @@ export class AzureServiceBusClient {
         })
         .where(eq(schema.eventStore.id, eventId));
     } catch (error) {
-      logger.error(`Failed to mark event ${eventId} as processed:`, error);
+      logger.error(`Failed to mark event ${eventId} as processed:`, error as Error);
     }
   }
 
@@ -386,10 +390,11 @@ export class AzureServiceBusClient {
         .where(eq(schema.eventStore.id, eventId))
         .limit(1);
 
-      if (event.length === 0) return false;
+      const eventRecord = event[0];
+      if (!eventRecord) return false;
 
-      const newRetryCount = event[0].retryCount + 1;
-      const shouldDeadLetter = newRetryCount >= event[0].maxRetries;
+      const newRetryCount = (eventRecord.retryCount || 0) + 1;
+      const shouldDeadLetter = newRetryCount >= (eventRecord.maxRetries || 3);
 
       await db
         .update(schema.eventStore)
@@ -403,7 +408,7 @@ export class AzureServiceBusClient {
 
       return shouldDeadLetter;
     } catch (error) {
-      logger.error(`Failed to increment retry for event ${eventId}:`, error);
+      logger.error(`Failed to increment retry for event ${eventId}:`, error as Error);
       return false;
     }
   }
@@ -414,7 +419,7 @@ export class AzureServiceBusClient {
     queueName: string,
     messageHandler: (message: ServiceBusReceivedMessage) => Promise<void>,
     errorHandler?: (error: any) => Promise<void>
-  ): Promise<Receiver> {
+  ): Promise<ServiceBusReceiver> {
     const receiver = this.sbClient.createReceiver(queueName, {
       receiveMode: 'peekLock'
     });
@@ -425,10 +430,10 @@ export class AzureServiceBusClient {
           await messageHandler(message);
           await receiver.completeMessage(message);
         } catch (error) {
-          logger.error(`Error processing message ${message.messageId}:`, error);
+          logger.error(`Error processing message ${message.messageId}:`, error as Error);
 
           // Increment retry count
-          const shouldDeadLetter = await this.incrementEventRetry(message.messageId!);
+          const shouldDeadLetter = await this.incrementEventRetry(String(message.messageId));
           if (shouldDeadLetter) {
             await receiver.deadLetterMessage(message, {
               deadLetterReason: 'Max retries exceeded',
@@ -456,7 +461,7 @@ export class AzureServiceBusClient {
     subscriptionName: string,
     messageHandler: (message: ServiceBusReceivedMessage) => Promise<void>,
     errorHandler?: (error: any) => Promise<void>
-  ): Promise<Receiver> {
+  ): Promise<ServiceBusReceiver> {
     // Ensure subscription exists
     await this.createSubscriptionIfNotExists(topicName, subscriptionName);
 
@@ -470,10 +475,10 @@ export class AzureServiceBusClient {
           await messageHandler(message);
           await receiver.completeMessage(message);
         } catch (error) {
-          logger.error(`Error processing message ${message.messageId} from ${topicName}/${subscriptionName}:`, error);
+          logger.error(`Error processing message ${message.messageId} from ${topicName}/${subscriptionName}:`, error as Error);
 
           // Increment retry count
-          const shouldDeadLetter = await this.incrementEventRetry(message.messageId!);
+          const shouldDeadLetter = await this.incrementEventRetry(String(message.messageId));
           if (shouldDeadLetter) {
             await receiver.deadLetterMessage(message, {
               deadLetterReason: 'Max retries exceeded',
@@ -535,7 +540,7 @@ export class AzureServiceBusClient {
   }> {
     const runtimeProperties = await this.adminClient.getTopicRuntimeProperties(topicName);
     return {
-      subscriptionCount: runtimeProperties.subscriptionCount,
+      subscriptionCount: runtimeProperties.subscriptionCount || 0,
       scheduledMessageCount: runtimeProperties.scheduledMessageCount
     };
   }
@@ -601,10 +606,10 @@ export class EventPublisher {
       },
       payload: {
         userId: userData.userId,
-        userType: userData.userType,
+        userType: userData.userType as any,
         email: userData.email,
         name: userData.name,
-        metadata: userData.metadata
+        metadata: userData.metadata as any
       }
     };
 

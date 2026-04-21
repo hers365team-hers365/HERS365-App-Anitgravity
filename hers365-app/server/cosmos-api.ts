@@ -87,10 +87,10 @@ function cacheMiddleware(ttl: number = 300) {
 
 export class CosmosAPIService {
   private app: express.Application;
-  private cosmosClient: OptimizedCosmosClient;
-  private repositories: RepositoryFactory;
-  private cacheManager: HybridCacheManager;
-  private cacheAside: CacheAsideManager;
+  private cosmosClient!: OptimizedCosmosClient;
+  private repositories!: RepositoryFactory;
+  private cacheManager!: HybridCacheManager;
+  private cacheAside!: CacheAsideManager;
 
   constructor() {
     this.app = express();
@@ -152,7 +152,8 @@ export class CosmosAPIService {
    */
   async initialize(): Promise<void> {
     // Initialize Cosmos DB
-    this.cosmosClient = new OptimizedCosmosClient();
+    const { cosmosConfig } = require('./cosmos-schema');
+    this.cosmosClient = new OptimizedCosmosClient(cosmosConfig);
     await this.cosmosClient.initialize();
 
     // Initialize repositories
@@ -207,7 +208,7 @@ export class CosmosAPIService {
         }
       });
     } catch (error) {
-      logger.error('Health check failed:', error);
+      logger.error('Health check failed:', error as Error);
       res.status(503).json({
         status: 'unhealthy',
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -219,30 +220,31 @@ export class CosmosAPIService {
 
   private async getUser(req: Request, res: Response): Promise<void> {
     try {
-      const { userId } = req.params;
+      const { userId } = req.params as any;
       const user = await this.cacheManager.getUser(userId);
 
       if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+        res.status(404).json({ error: 'User not found' });
+        return;
       }
 
       res.json({ user });
     } catch (error) {
-      logger.error(`Error getting user ${req.params.userId}:`, error);
+      logger.error(`Error getting user ${req.params.userId}:`, error as Error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
 
   private async updateUser(req: Request, res: Response): Promise<void> {
     try {
-      const { userId } = req.params;
+      const { userId } = req.params as any;
       const updates = req.body;
 
       const user = await this.cacheManager.updateUser(userId, updates);
 
       // Publish user updated event
       await eventPublisher.publishUserCreated({
-        userId,
+        userId: userId as string,
         userType: user.userType,
         email: user.email,
         name: user.name,
@@ -253,7 +255,7 @@ export class CosmosAPIService {
 
       res.json({ user });
     } catch (error) {
-      logger.error(`Error updating user ${req.params.userId}:`, error);
+      logger.error(`Error updating user ${req.params.userId}:`, error as Error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
@@ -264,7 +266,7 @@ export class CosmosAPIService {
       const page = parseInt(req.query.page as string) || 1;
       const limit = Math.min(parseInt(req.query.limit as string) || 20, 50);
 
-      const result = await this.cacheManager.getUserPosts(userId, page, limit);
+      const result = await this.cacheManager.getUserPosts(userId as string, page, limit);
 
       res.json({
         posts: result.posts,
@@ -276,7 +278,7 @@ export class CosmosAPIService {
         cached: result.cached
       });
     } catch (error) {
-      logger.error(`Error getting posts for user ${req.params.userId}:`, error);
+      logger.error(`Error getting posts for user ${req.params.userId}:`, error as Error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
@@ -302,7 +304,7 @@ export class CosmosAPIService {
       // Publish post created event
       await eventPublisher.publish({
         id: uuidv4(),
-        eventType: 'PostCreated',
+        eventType: 'PostCreated' as any,
         aggregateId: post.postId,
         aggregateType: 'Post',
         timestamp: new Date().toISOString(),
@@ -320,7 +322,7 @@ export class CosmosAPIService {
 
       res.status(201).json({ post });
     } catch (error) {
-      logger.error('Error creating post:', error);
+      logger.error('Error creating post:', error as Error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
@@ -334,21 +336,21 @@ export class CosmosAPIService {
 
       res.json({ posts });
     } catch (error) {
-      logger.error(`Error getting posts for hashtag ${req.params.hashtag}:`, error);
+      logger.error(`Error getting posts for hashtag ${req.params.hashtag}:`, error as Error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
 
   private async updatePostEngagement(req: Request, res: Response): Promise<void> {
     try {
-      const { postId } = req.params;
+      const { postId } = req.params as any;
       const updates = req.body;
 
       await this.repositories.getPostRepository().updateEngagement(postId, updates);
 
       res.json({ success: true });
     } catch (error) {
-      logger.error(`Error updating engagement for post ${req.params.postId}:`, error);
+      logger.error(`Error updating engagement for post ${req.params.postId}:`, error as Error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
@@ -357,7 +359,7 @@ export class CosmosAPIService {
 
   private async getConversationMessages(req: Request, res: Response): Promise<void> {
     try {
-      const { conversationId } = req.params;
+      const { conversationId } = req.params as any;
       const limit = Math.min(parseInt(req.query.limit as string) || 50, 100);
 
       const result = await this.cacheManager.getConversationMessages(conversationId, undefined, limit);
@@ -367,7 +369,7 @@ export class CosmosAPIService {
         cached: result.cached
       });
     } catch (error) {
-      logger.error(`Error getting messages for conversation ${req.params.conversationId}:`, error);
+      logger.error(`Error getting messages for conversation ${req.params.conversationId}:`, error as Error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
@@ -381,7 +383,10 @@ export class CosmosAPIService {
         messageType: req.body.messageType || 'direct',
         content: req.body.content,
         attachments: req.body.attachments,
-        complianceFlags: req.body.complianceFlags || []
+        complianceFlags: req.body.complianceFlags || [],
+        status: 'sent' as const,
+        partitionKey: `conv_${req.body.conversationId}`,
+        messageId: uuidv4()
       };
 
       const message = await this.repositories.getMessageRepository().create(messageData);
@@ -389,8 +394,8 @@ export class CosmosAPIService {
       // Publish message sent event
       await eventPublisher.publish({
         id: uuidv4(),
-        eventType: 'MessageSent',
-        aggregateId: message.messageId,
+        eventType: 'MessageSent' as any,
+        aggregateId: (message as any).messageId,
         aggregateType: 'Message',
         timestamp: new Date().toISOString(),
         correlationId: correlation.extractCorrelationId(req.headers),
@@ -407,7 +412,7 @@ export class CosmosAPIService {
 
       res.status(201).json({ message });
     } catch (error) {
-      logger.error('Error sending message:', error);
+      logger.error('Error sending message:', error as Error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
@@ -420,7 +425,7 @@ export class CosmosAPIService {
 
       res.json({ success: true });
     } catch (error) {
-      logger.error('Error marking messages as read:', error);
+      logger.error('Error marking messages as read:', error as Error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
@@ -429,11 +434,11 @@ export class CosmosAPIService {
     try {
       const { userId } = req.params;
 
-      const count = await this.repositories.getMessageRepository().getUnreadCount(userId);
+      const count = await this.repositories.getMessageRepository().getUnreadCount(userId as string);
 
       res.json({ unreadCount: count });
     } catch (error) {
-      logger.error(`Error getting unread count for user ${req.params.userId}:`, error);
+      logger.error(`Error getting unread count for user ${req.params.userId}:`, error as Error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
@@ -453,7 +458,7 @@ export class CosmosAPIService {
         cacheKey: result.cacheKey
       });
     } catch (error) {
-      logger.error('Error searching athletes:', error);
+      logger.error('Error searching athletes:', error as Error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
@@ -465,14 +470,14 @@ export class CosmosAPIService {
       const { metricType, timeBucket } = req.params;
       const dimensions = req.query;
 
-      const result = await this.cacheManager.getAnalytics(metricType, timeBucket, dimensions);
+      const result = await this.cacheManager.getAnalytics(metricType as string, timeBucket as string, dimensions as any);
 
       res.json({
         data: result.data,
         cached: result.cached
       });
     } catch (error) {
-      logger.error(`Error getting analytics ${req.params.metricType}:`, error);
+      logger.error(`Error getting analytics ${req.params.metricType}:`, error as Error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
@@ -487,7 +492,7 @@ export class CosmosAPIService {
       const toDate = req.query.toDate ? new Date(req.query.toDate as string) : new Date();
 
       const logs = await this.repositories.getAuditRepository().getComplianceTrail(
-        userId,
+        userId as string,
         complianceType,
         fromDate,
         toDate
@@ -495,7 +500,7 @@ export class CosmosAPIService {
 
       res.json({ auditLogs: logs });
     } catch (error) {
-      logger.error(`Error getting compliance audit for user ${req.params.userId}:`, error);
+      logger.error(`Error getting compliance audit for user ${req.params.userId}:`, error as Error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
@@ -512,7 +517,7 @@ export class CosmosAPIService {
 
       res.json({ incidents });
     } catch (error) {
-      logger.error('Error getting security incidents:', error);
+      logger.error('Error getting security incidents:', error as Error);
       res.status(500).json({ error: 'Internal server error' });
     }
   }
@@ -601,5 +606,3 @@ export class BatchOptimizer {
 }
 
 // ─── EXPORT SERVICE ──────────────────────────────────────────────────────────
-
-export { CosmosAPIService, BatchOptimizer };

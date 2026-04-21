@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch index.ts",
-    "dev:legacy": "tsx watch index.ts", // Legacy monolithic mode
-    "dev:microservices": "tsx watch index.ts", // New microservices mode
+    "dev:legacy": "tsx watch index.ts",
+    "dev:microservices": "tsx watch index.ts",
     "start": "node dist/index.js",
     "start:microservices": "node dist/index.js",
     "build": "tsc",
@@ -36,11 +36,17 @@
     "compliance:setup": "tsx scripts/setup-compliance-infrastructure.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1033.0",
+    "@aws-sdk/s3-request-presigner": "^3.1033.0",
     "@azure/cosmos": "^4.0.0",
-    "@azure/service-bus": "^7.9.3",
     "@azure/identity": "^4.2.1",
     "@azure/keyvault-secrets": "^4.8.0",
+    "@azure/service-bus": "^7.9.3",
     "@azure/storage-blob": "^12.17.0",
+    "@opentelemetry/api": "^1.8.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.52.1",
+    "@opentelemetry/exporter-jaeger": "^1.28.0",
+    "@opentelemetry/sdk-node": "^0.52.1",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.0.0",
@@ -58,13 +64,10 @@
     "node-fetch": "^3.3.2",
     "openai": "^4.86.1",
     "pg": "^8.13.3",
+    "redis": "^5.12.1",
     "stripe": "^17.7.0",
     "uuid": "^13.0.0",
-    "ws": "^8.18.1",
-    "@opentelemetry/api": "^1.8.0",
-    "@opentelemetry/sdk-node": "^0.52.1",
-    "@opentelemetry/auto-instrumentations-node": "^0.52.1",
-    "@opentelemetry/exporter-jaeger": "^1.28.0"
+    "ws": "^8.18.1"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",

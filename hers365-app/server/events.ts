@@ -232,13 +232,53 @@ export interface ComplianceViolationEvent extends BaseEvent {
   eventType: 'ComplianceViolation';
   payload: {
     violationId: string;
-    violationType: 'coppa' | 'ferpa' | 'gdpr' | 'pci';
+    violationType: 'coppa' | 'ferpa' | 'gdpr' | 'pci' | string;
     severity: 'low' | 'medium' | 'high' | 'critical';
     description: string;
-    affectedUsers: string[];
+    affectedUsers: string[] | number;
     remediationRequired: boolean;
     reportedToAuthorities: boolean;
   };
+}
+
+export interface ComplianceViolationDetectedEvent extends BaseEvent {
+  eventType: 'ComplianceViolationDetected';
+  payload: any;
+}
+
+export interface DataBreachReportedEvent extends BaseEvent {
+  eventType: 'DataBreachReported';
+  payload: any;
+}
+
+export interface DataExportRequestedEvent extends BaseEvent {
+  eventType: 'DataExportRequested';
+  payload: any;
+}
+
+export interface DataExportCompletedEvent extends BaseEvent {
+  eventType: 'DataExportCompleted';
+  payload: any;
+}
+
+export interface DataExportFailedEvent extends BaseEvent {
+  eventType: 'DataExportFailed';
+  payload: any;
+}
+
+export interface DataDeletionRequestedEvent extends BaseEvent {
+  eventType: 'DataDeletionRequested';
+  payload: any;
+}
+
+export interface DataDeletionCompletedEvent extends BaseEvent {
+  eventType: 'DataDeletionCompleted';
+  payload: any;
+}
+
+export interface DataDeletionFailedEvent extends BaseEvent {
+  eventType: 'DataDeletionFailed';
+  payload: any;
 }
 
 // System Events
@@ -315,5 +355,13 @@ export type DomainEvent =
   | NILDealCreatedEvent
   | AuditEventLoggedEvent
   | ComplianceViolationEvent
+  | ComplianceViolationDetectedEvent
+  | DataBreachReportedEvent
+  | DataExportRequestedEvent
+  | DataExportCompletedEvent
+  | DataExportFailedEvent
+  | DataDeletionRequestedEvent
+  | DataDeletionCompletedEvent
+  | DataDeletionFailedEvent
   | ServiceHealthEvent
   | CircuitBreakerEvent;

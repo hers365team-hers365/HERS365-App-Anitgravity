@@ -6,7 +6,9 @@ interface EmailOptions {
 }
 export declare function sendEmail({ to, subject, html, from }: EmailOptions): Promise<{
     success: boolean;
-    data: any;
+    data: {
+        id: string;
+    };
     error?: undefined;
 } | {
     success: boolean;
@@ -15,7 +17,9 @@ export declare function sendEmail({ to, subject, html, from }: EmailOptions): Pr
 }>;
 export declare function sendPasswordResetEmail(to: string, resetToken: string): Promise<{
     success: boolean;
-    data: any;
+    data: {
+        id: string;
+    };
     error?: undefined;
 } | {
     success: boolean;
@@ -24,7 +28,9 @@ export declare function sendPasswordResetEmail(to: string, resetToken: string): 
 }>;
 export declare function sendWelcomeEmail(to: string, name: string): Promise<{
     success: boolean;
-    data: any;
+    data: {
+        id: string;
+    };
     error?: undefined;
 } | {
     success: boolean;

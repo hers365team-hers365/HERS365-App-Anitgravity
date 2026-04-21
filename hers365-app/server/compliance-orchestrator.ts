@@ -13,20 +13,21 @@ import { ComplianceService } from './compliance-service';
 import { DataExportPipeline, DataDeletionPipeline } from './data-pipelines';
 import { ComplianceMonitor, ComplianceAlerting } from './compliance-monitoring';
 import { eventPublisher } from './service-bus';
+import { v4 as uuidv4 } from 'uuid';
 import { logger } from './logger';
 
 // ─── COMPLIANCE ORCHESTRATOR ─────────────────────────────────────────────────
 
 export class ComplianceOrchestrator {
-  private cosmosClient: OptimizedCosmosClient;
-  private serviceBusClient: ServiceBusClient;
-  private blobService: BlobServiceClient;
+  private cosmosClient!: OptimizedCosmosClient;
+  private serviceBusClient!: ServiceBusClient;
+  private blobService!: BlobServiceClient;
 
-  private complianceService: ComplianceService;
-  private exportPipeline: DataExportPipeline;
-  private deletionPipeline: DataDeletionPipeline;
-  private complianceMonitor: ComplianceMonitor;
-  private complianceAlerting: ComplianceAlerting;
+  private complianceService!: ComplianceService;
+  private exportPipeline!: DataExportPipeline;
+  private deletionPipeline!: DataDeletionPipeline;
+  private complianceMonitor!: ComplianceMonitor;
+  private complianceAlerting!: ComplianceAlerting;
 
   private app: express.Application;
   private eventReceivers: any[] = [];
@@ -42,7 +43,8 @@ export class ComplianceOrchestrator {
 
   private setupConfiguration(): void {
     // Initialize Azure clients
-    this.cosmosClient = new OptimizedCosmosClient();
+    const { cosmosConfig } = require('./cosmos-schema');
+    this.cosmosClient = new OptimizedCosmosClient(cosmosConfig);
     this.serviceBusClient = new ServiceBusClient(
       process.env.AZURE_SERVICEBUS_CONNECTION_STRING!
     );
@@ -129,11 +131,9 @@ export class ComplianceOrchestrator {
           if (event.eventType === 'DataExportRequested') {
             await this.exportPipeline.processExportRequest(event.payload);
           }
-
-          await message.complete();
         } catch (error) {
-          logger.error('Data export event processing error:', error);
-          await message.abandon();
+          logger.error('Data export event processing error:', error as Error);
+          throw error; // Re-throw to let the subscriber helper handle settlement
         }
       }
     );
@@ -155,11 +155,9 @@ export class ComplianceOrchestrator {
           if (event.eventType === 'DataDeletionRequested') {
             await this.deletionPipeline.processDeletionRequest(event.payload);
           }
-
-          await message.complete();
         } catch (error) {
-          logger.error('Data deletion event processing error:', error);
-          await message.abandon();
+          logger.error('Data deletion event processing error:', error as Error);
+          throw error;
         }
       }
     );
@@ -183,11 +181,9 @@ export class ComplianceOrchestrator {
           } else if (event.eventType === 'DataBreachReported') {
             await this.complianceAlerting.sendBreachNotification(event.payload);
           }
-
-          await message.complete();
         } catch (error) {
-          logger.error('Compliance alerting event processing error:', error);
-          await message.abandon();
+          logger.error('Compliance alerting event processing error:', error as Error);
+          throw error;
         }
       }
     );
@@ -230,7 +226,7 @@ export class ComplianceOrchestrator {
       logger.info('🗂️  Data Governance: Export/deletion pipelines, consent management');
 
     } catch (error) {
-      logger.error('❌ Failed to start compliance orchestrator:', error);
+      logger.error('❌ Failed to start compliance orchestrator:', error as Error);
       throw error;
     }
   }
@@ -325,7 +321,7 @@ export class ComplianceOrchestrator {
     // Log emergency stop
     await eventPublisher.publish({
       id: uuidv4(),
-      eventType: 'ComplianceEmergencyStop',
+      eventType: 'ComplianceEmergencyStop' as any,
       aggregateId: 'emergency-stop',
       aggregateType: 'ComplianceSystem',
       timestamp: new Date().toISOString(),
@@ -506,5 +502,3 @@ export class ComplianceUtils {
 }
 
 // ─── EXPORT ORCHESTRATOR ─────────────────────────────────────────────────────
-
-export { ComplianceOrchestrator, ComplianceDashboard, ComplianceUtils };

@@ -1,0 +1,11 @@
+
+> server@1.0.0 build
+> tsc
+
+auth.ts(258,11): error TS2322: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'.
+auth.ts(859,5): error TS2322: Type 'Date | null' is not assignable to type 'Date'.
+  Type 'null' is not assignable to type 'Date'.
+auth.ts(1208,5): error TS2740: Type 'Omit<SQLiteSelectBase<"security_audit_logs", "sync", RunResult, { id: SQLiteColumn<{ name: "id"; tableName: "security_audit_logs"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; ... 8 more ...; generated: undefined; }, {}, {}>; ... 11 more ...; createdAt: SQLiteColumn<...>; }, .....' is missing the following properties from type 'SQLiteSelectBase<"security_audit_logs", "sync", RunResult, { id: SQLiteColumn<{ name: "id"; tableName: "security_audit_logs"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; ... 8 more ...; generated: undefined; }, {}, {}>; ... 11 more ...; createdAt: SQLiteColumn<...>; }, ... 5 m...': joinsNotNullableMap, tableName, isPartialSelect, session, and 4 more.
+auth.ts(1211,3): error TS2740: Type 'Omit<SQLiteSelectBase<"security_audit_logs", "sync", RunResult, { id: SQLiteColumn<{ name: "id"; tableName: "security_audit_logs"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; ... 8 more ...; generated: undefined; }, {}, {}>; ... 11 more ...; createdAt: SQLiteColumn<...>; }, .....' is missing the following properties from type 'SQLiteSelectBase<"security_audit_logs", "sync", RunResult, { id: SQLiteColumn<{ name: "id"; tableName: "security_audit_logs"; dataType: "number"; columnType: "SQLiteInteger"; data: number; driverParam: number; ... 8 more ...; generated: undefined; }, {}, {}>; ... 11 more ...; createdAt: SQLiteColumn<...>; }, ... 5 m...': joinsNotNullableMap, tableName, isPartialSelect, session, and 5 more.
+compliance-service.ts(224,47): error TS2345: Argument of type 'unknown' is not assignable to parameter of type 'LogContext | Error | undefined'.

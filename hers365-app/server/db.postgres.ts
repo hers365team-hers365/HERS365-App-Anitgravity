@@ -1,7 +1,7 @@
 // PostgreSQL database configuration for production (50K users)
 // Run: npm run db:push after switching
 
-import { pgTable, serial, text, integer, real, boolean, timestamp, json, varchar, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, serial, text, integer, real, timestamp, json, varchar } from 'drizzle-orm/pg-core';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
 
