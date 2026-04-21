@@ -74,9 +74,10 @@ const defaultConfig: ServiceBusConfig = {
 
 export class AzureServiceBusClient {
   private static instance: AzureServiceBusClient;
-  private sbClient: ServiceBusClient;
-  private adminClient: ServiceBusAdministrationClient;
+  private sbClient?: ServiceBusClient;
+  private adminClient?: ServiceBusAdministrationClient;
   private config: ServiceBusConfig;
+  private disabled: boolean = false;
 
   private constructor() {
     this.config = {
@@ -102,7 +103,8 @@ export class AzureServiceBusClient {
         credential
       );
     } else {
-      throw new Error('Azure Service Bus connection configuration missing');
+      logger.warn('⚠️ Azure Service Bus configuration missing - Service Bus features will be disabled');
+      this.disabled = true;
     }
   }
 
@@ -116,6 +118,9 @@ export class AzureServiceBusClient {
   // ─── INFRASTRUCTURE MANAGEMENT ──────────────────────────────────────────────
 
   async ensureInfrastructure(): Promise<void> {
+    if (this.disabled || !this.adminClient) return;
+
+    logger.info('Ensuring Service Bus infrastructure...');
     try {
       // Create topics for domain events
       await this.createTopicIfNotExists('user-events', {
@@ -202,6 +207,11 @@ export class AzureServiceBusClient {
       // Store event in database first for reliability
       await this.storeEvent(event);
 
+      if (this.disabled || !this.sbClient) {
+        logger.debug(`Skipping publish of event ${event.eventType} (Service Bus disabled)`);
+        return;
+      }
+
       // Determine topic based on event type
       const topicName = this.getTopicForEvent(event.eventType);
 
@@ -224,7 +234,6 @@ export class AzureServiceBusClient {
         timeToLive: event.metadata?.ttl ? event.metadata?.ttl * 1000 : undefined
       };
 
-      // Publish to topic
       const sender = this.sbClient.createSender(topicName);
       await sender.sendMessages(message);
       await sender.close();
@@ -257,6 +266,11 @@ export class AzureServiceBusClient {
         await Promise.all(topicEvents.map(event => this.storeEvent(event)));
 
         // Create batch
+        if (this.disabled || !this.sbClient) {
+          logger.warn(`Service Bus disabled: Would have published ${topicEvents.length} events to ${topicName}`);
+          continue;
+        }
+
         const sender = this.sbClient.createSender(topicName);
         const batch = await sender.createMessageBatch();
 
@@ -419,7 +433,12 @@ export class AzureServiceBusClient {
     queueName: string,
     messageHandler: (message: ServiceBusReceivedMessage) => Promise<void>,
     errorHandler?: (error: any) => Promise<void>
-  ): Promise<ServiceBusReceiver> {
+  ): Promise<ServiceBusReceiver | undefined> {
+    if (this.disabled || !this.sbClient) {
+      logger.debug(`Skipping subscribeToQueue ${queueName} (Service Bus disabled)`);
+      return undefined;
+    }
+
     const receiver = this.sbClient.createReceiver(queueName, {
       receiveMode: 'peekLock'
     });
@@ -461,7 +480,12 @@ export class AzureServiceBusClient {
     subscriptionName: string,
     messageHandler: (message: ServiceBusReceivedMessage) => Promise<void>,
     errorHandler?: (error: any) => Promise<void>
-  ): Promise<ServiceBusReceiver> {
+  ): Promise<ServiceBusReceiver | undefined> {
+    if (this.disabled || !this.sbClient) {
+      logger.debug(`Skipping subscribeToTopic ${topicName}/${subscriptionName} (Service Bus disabled)`);
+      return undefined;
+    }
+
     // Ensure subscription exists
     await this.createSubscriptionIfNotExists(topicName, subscriptionName);
 
@@ -502,6 +526,8 @@ export class AzureServiceBusClient {
   }
 
   private async createSubscriptionIfNotExists(topicName: string, subscriptionName: string): Promise<void> {
+    if (this.disabled || !this.adminClient) return;
+
     try {
       await this.adminClient.createSubscription(topicName, subscriptionName, {
         lockDuration: 'PT5M',
@@ -524,7 +550,9 @@ export class AzureServiceBusClient {
     deadLetterMessageCount: number;
     scheduledMessageCount: number;
     transferMessageCount: number;
-  }> {
+  } | undefined> {
+    if (this.disabled || !this.adminClient) return undefined;
+
     const runtimeProperties = await this.adminClient.getQueueRuntimeProperties(queueName);
     return {
       activeMessageCount: runtimeProperties.activeMessageCount,
@@ -537,7 +565,9 @@ export class AzureServiceBusClient {
   async getTopicStats(topicName: string): Promise<{
     subscriptionCount: number;
     scheduledMessageCount: number;
-  }> {
+  } | undefined> {
+    if (this.disabled || !this.adminClient) return undefined;
+
     const runtimeProperties = await this.adminClient.getTopicRuntimeProperties(topicName);
     return {
       subscriptionCount: runtimeProperties.subscriptionCount || 0,
@@ -548,7 +578,9 @@ export class AzureServiceBusClient {
   // ─── CLEANUP ────────────────────────────────────────────────────────────────
 
   async close(): Promise<void> {
-    await this.sbClient.close();
+    if (this.sbClient) {
+      await this.sbClient.close();
+    }
     logger.info('Azure Service Bus client closed');
   }
 }

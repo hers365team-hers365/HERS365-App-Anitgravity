@@ -13,5 +13,13 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
+  },
+  server: {
+    proxy: {
+      '/api': 'http://localhost:4000',
+      '/auth': 'http://localhost:4000',
+      '/coach': 'http://localhost:4000',
+      '/compliance': 'http://localhost:4000'
+    }
   }
 })

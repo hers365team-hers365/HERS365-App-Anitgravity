@@ -27,8 +27,8 @@ export class DataExportPipeline {
 
   constructor(
     cosmosClient: OptimizedCosmosClient,
-    blobService: BlobServiceClient,
-    serviceBusClient: ServiceBusClient
+    blobService: BlobServiceClient | undefined,
+    serviceBusClient: ServiceBusClient | undefined
   ) {
     this.cosmosClient = cosmosClient;
     this.blobService = blobService;
@@ -395,7 +395,7 @@ export class DataDeletionPipeline {
 
   constructor(
     cosmosClient: OptimizedCosmosClient,
-    serviceBusClient: ServiceBusClient
+    serviceBusClient: ServiceBusClient | undefined
   ) {
     this.cosmosClient = cosmosClient;
     this.serviceBusClient = serviceBusClient;

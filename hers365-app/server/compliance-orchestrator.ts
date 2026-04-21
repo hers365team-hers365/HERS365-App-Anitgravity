@@ -8,7 +8,7 @@ import { CosmosClient } from '@azure/cosmos';
 import { ServiceBusClient } from '@azure/service-bus';
 import { BlobServiceClient } from '@azure/storage-blob';
 import express from 'express';
-import { OptimizedCosmosClient } from './cosmos-schema';
+import { OptimizedCosmosClient, COSMOS_SCHEMA } from './cosmos-schema';
 import { ComplianceService } from './compliance-service';
 import { DataExportPipeline, DataDeletionPipeline } from './data-pipelines';
 import { ComplianceMonitor, ComplianceAlerting } from './compliance-monitoring';
@@ -20,8 +20,8 @@ import { logger } from './logger';
 
 export class ComplianceOrchestrator {
   private cosmosClient!: OptimizedCosmosClient;
-  private serviceBusClient!: ServiceBusClient;
-  private blobService!: BlobServiceClient;
+  private serviceBusClient?: ServiceBusClient;
+  private blobService?: BlobServiceClient;
 
   private complianceService!: ComplianceService;
   private exportPipeline!: DataExportPipeline;
@@ -43,37 +43,45 @@ export class ComplianceOrchestrator {
 
   private setupConfiguration(): void {
     // Initialize Azure clients
-    const { cosmosConfig } = require('./cosmos-schema');
-    this.cosmosClient = new OptimizedCosmosClient(cosmosConfig);
-    this.serviceBusClient = new ServiceBusClient(
-      process.env.AZURE_SERVICEBUS_CONNECTION_STRING!
-    );
-    this.blobService = BlobServiceClient.fromConnectionString(
-      process.env.AZURE_STORAGE_CONNECTION_STRING!
-    );
+    this.cosmosClient = new OptimizedCosmosClient(COSMOS_SCHEMA);
+    if (process.env.AZURE_SERVICEBUS_CONNECTION_STRING) {
+      this.serviceBusClient = new ServiceBusClient(
+        process.env.AZURE_SERVICEBUS_CONNECTION_STRING
+      );
+    } else {
+      logger.warn('⚠️ Azure Service Bus connection string missing in compliance orchestrator');
+    }
+
+    if (process.env.AZURE_STORAGE_CONNECTION_STRING) {
+      this.blobService = BlobServiceClient.fromConnectionString(
+        process.env.AZURE_STORAGE_CONNECTION_STRING
+      );
+    } else {
+      logger.warn('⚠️ Azure Storage connection string missing in compliance orchestrator');
+    }
   }
 
   private initializeComponents(): void {
     // Initialize core services
     this.complianceService = new ComplianceService(
       this.cosmosClient,
-      this.serviceBusClient
+      this.serviceBusClient!
     );
 
     this.exportPipeline = new DataExportPipeline(
       this.cosmosClient,
-      this.blobService,
-      this.serviceBusClient
+      this.blobService!,
+      this.serviceBusClient!
     );
 
     this.deletionPipeline = new DataDeletionPipeline(
       this.cosmosClient,
-      this.serviceBusClient
+      this.serviceBusClient!
     );
 
     this.complianceMonitor = new ComplianceMonitor(
       this.cosmosClient,
-      this.serviceBusClient
+      this.serviceBusClient!
     );
 
     this.complianceAlerting = new ComplianceAlerting(this.complianceMonitor);

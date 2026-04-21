@@ -28,7 +28,7 @@ export class ComplianceMonitor {
 
   constructor(
     cosmosClient: OptimizedCosmosClient,
-    serviceBusClient: ServiceBusClient
+    serviceBusClient: ServiceBusClient | undefined
   ) {
     this.cosmosClient = cosmosClient;
     this.serviceBusClient = serviceBusClient;

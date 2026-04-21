@@ -13,10 +13,10 @@ import {
   Star,
   ChevronRight
 } from 'lucide-react';
-import { CoachAnalytics, PlayerClip } from '../../types';
+import { CoachAnalytics as CoachAnalyticsType, PlayerClip } from '../../types';
 
 export function CoachDashboard() {
-  const [analytics, setAnalytics] = useState<CoachAnalytics | null>(null);
+  const [analytics, setAnalytics] = useState<CoachAnalyticsType | null>(null);
   const [clips, setClips] = useState<PlayerClip[]>([]);
   const [loading, setLoading] = useState(true);
 

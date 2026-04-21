@@ -188,8 +188,7 @@ export class DatabaseShardingManager {
   getShardConnection(shardId: number): any {
     // In production, maintain connection pool per shard
     // For now, return main db connection
-    const { db } = require('./db');
-    return db;
+    return import('./db').then(m => m.db);
   }
 
   /**

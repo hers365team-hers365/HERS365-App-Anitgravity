@@ -6,6 +6,7 @@
 
 import { CosmosClient, Container, Database, PartitionKeyDefinition } from '@azure/cosmos';
 import { v4 as uuidv4 } from 'uuid';
+import { logger } from './logger';
 
 // ─── COSMOS DB CONFIGURATION ────────────────────────────────────────────────────
 
@@ -880,6 +881,14 @@ export class OptimizedCosmosClient {
   }
 
   async initialize(): Promise<void> {
+    const isMock = COSMOS_SCHEMA.endpoint.includes('preview-mock') || 
+                   process.env.COSMOS_KEY === 'preview-mock-key';
+
+    if (isMock) {
+      logger.warn('⚠️ Cosmos DB mock credentials detected - skipping initialization');
+      return;
+    }
+
     // Create database if it doesn't exist
     await this.client.databases.createIfNotExists({
       id: COSMOS_SCHEMA.databaseName,

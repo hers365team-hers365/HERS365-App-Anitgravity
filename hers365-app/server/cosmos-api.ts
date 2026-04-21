@@ -5,7 +5,7 @@
  */
 
 import express, { Request, Response, NextFunction } from 'express';
-import { OptimizedCosmosClient } from './cosmos-schema';
+import { OptimizedCosmosClient, COSMOS_SCHEMA } from './cosmos-schema';
 import { RepositoryFactory } from './cosmos-repositories';
 import { HybridCacheManager, RedisCacheClient, CacheAsideManager } from './cache-layer';
 import { eventPublisher } from './service-bus';
@@ -152,8 +152,7 @@ export class CosmosAPIService {
    */
   async initialize(): Promise<void> {
     // Initialize Cosmos DB
-    const { cosmosConfig } = require('./cosmos-schema');
-    this.cosmosClient = new OptimizedCosmosClient(cosmosConfig);
+    this.cosmosClient = new OptimizedCosmosClient(COSMOS_SCHEMA);
     await this.cosmosClient.initialize();
 
     // Initialize repositories

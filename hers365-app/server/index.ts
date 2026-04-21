@@ -64,7 +64,7 @@ process.on('uncaughtException', (error) => {
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  logger.error('Unhandled Rejection', reason instanceof Error ? reason : { reason });
   metrics.recordMetric('unhandled_rejection', 1, 'counter');
   process.exit(1);
 });
@@ -204,12 +204,19 @@ async function startApplication() {
       logger.warn('⚠️ Azure Service Bus not configured - running in local mode');
     }
 
-    if (!process.env.COSMOS_ENDPOINT || !process.env.COSMOS_KEY) {
-      logger.warn('⚠️ Cosmos DB configuration missing - running in limited local mode');
+    const isMockCosmos = process.env.COSMOS_ENDPOINT?.includes('preview-mock') || 
+                        process.env.COSMOS_KEY === 'preview-mock-key';
+
+    if (!process.env.COSMOS_ENDPOINT || !process.env.COSMOS_KEY || isMockCosmos) {
+      logger.warn('⚠️ Cosmos DB configuration missing or mock - running in limited local mode');
     } else {
       // Initialize Cosmos DB API service
       logger.info('📊 Initializing Cosmos DB API service...');
-      await cosmosAPIService.initialize();
+      try {
+        await cosmosAPIService.initialize();
+      } catch (error) {
+        logger.error('❌ Failed to initialize Cosmos DB API service. Running in limited mode.', error);
+      }
     }
 
     // Start microservices (if configured)

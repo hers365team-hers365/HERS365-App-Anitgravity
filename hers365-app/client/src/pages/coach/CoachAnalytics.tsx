@@ -14,10 +14,10 @@ import {
   Heart,
   Activity
 } from 'lucide-react';
-import { CoachAnalytics } from '../../types';
+import { CoachAnalytics as CoachAnalyticsType } from '../../types';
 
 export function CoachAnalytics() {
-  const [analytics, setAnalytics] = useState<CoachAnalytics | null>(null);
+  const [analytics, setAnalytics] = useState<CoachAnalyticsType | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
