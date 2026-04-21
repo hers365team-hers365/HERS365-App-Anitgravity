@@ -70,6 +70,7 @@ import adminRoutes from './adminRoutes';
 import tokenRoutes from './tokenRoutes';
 import scholarshipRoutes from './scholarshipRoutes';
 import rankingRoutes from './rankingRoutes';
+import originalRoutes from './originalRoutes';
 import eventRoutes from './eventRoutes';
 import supportRoutes from './supportRoutes';
 import agentOrchestrator from './agents/index.js';
@@ -78,6 +79,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.use('/api', apiRoutes);
+app.use('/api/original', originalRoutes);
 app.use('/auth', authRoutes);
 app.use('/coach', coachRoutes);
 app.use('/payments', paymentRoutes);
@@ -108,6 +110,69 @@ app.listen(port, () => {
     console.log(`   Coach API:   http://localhost:${port}/coach/`);
     console.log(`   Auth:        http://localhost:${port}/auth/\n`);
 });
+// ======================
+// WebSocket Server for Real-time Features
+// ======================
+import { WebSocketServer, WebSocket } from 'ws';
+const wss = new WebSocketServer({ port: Number(port) + 1 });
+const clients = new Map();
+wss.on('connection', (ws) => {
+    console.log('🔌 New WebSocket connection');
+    ws.on('message', (data) => {
+        try {
+            const message = JSON.parse(data.toString());
+            switch (message.type) {
+                case 'auth':
+                    // Client sending auth token
+                    const clientData = clients.get(ws) || {};
+                    clientData.userId = message.userId;
+                    clientData.role = message.role;
+                    clients.set(ws, clientData);
+                    ws.send(JSON.stringify({ type: 'authenticated', userId: message.userId }));
+                    break;
+                case 'subscribe':
+                    // Subscribe to notifications
+                    if (message.channel) {
+                        console.log(`📡 Client subscribed to ${message.channel}`);
+                    }
+                    break;
+                case 'ping':
+                    ws.send(JSON.stringify({ type: 'pong' }));
+                    break;
+            }
+        }
+        catch (err) {
+            console.error('WebSocket message error:', err);
+        }
+    });
+    ws.on('close', () => {
+        console.log('🔌 WebSocket disconnected');
+        clients.delete(ws);
+    });
+    ws.on('error', (err) => {
+        console.error('WebSocket error:', err);
+        clients.delete(ws);
+    });
+});
+// Broadcast to all connected clients
+export function broadcast(channel, data) {
+    const message = JSON.stringify({ channel, data, timestamp: Date.now() });
+    clients.forEach((client) => {
+        if (client.ws.readyState === WebSocket.OPEN) {
+            client.ws.send(message);
+        }
+    });
+}
+// Send to specific user
+export function sendToUser(userId, channel, data) {
+    const message = JSON.stringify({ channel, data, timestamp: Date.now() });
+    clients.forEach((client) => {
+        if (client.userId === userId && client.ws.readyState === WebSocket.OPEN) {
+            client.ws.send(message);
+        }
+    });
+}
+console.log(`📡 WebSocket server running on ws://localhost:${Number(port) + 1}`);
 // Start AI Agents for monitoring
 if (process.env.ENABLE_AI_AGENTS === "true" || process.env.NODE_ENV !== "production") {
     console.log("🤖 Starting AI Agents for monitoring and bug detection...");

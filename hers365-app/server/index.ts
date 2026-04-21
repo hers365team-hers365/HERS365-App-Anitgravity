@@ -1,212 +1,254 @@
 // @ts-nocheck
-import express from 'express';
-import cors from 'cors';
+/**
+ * HERS365 ENTERPRISE PLATFORM
+ * Event-driven microservices with Cosmos DB optimization
+ * Sub-200ms latency at enterprise scale
+ */
+
 import dotenv from 'dotenv';
-import helmet from 'helmet';
+import express from 'express';
+import { serviceOrchestrator } from './microservices';
+import { serviceBusClient } from './service-bus';
+import { CosmosAPIService } from './cosmos-api';
+import { ComplianceOrchestrator, ComplianceDashboard } from './compliance-orchestrator';
+import { tracing, metrics } from './observability';
+import { logger } from './logger';
 
 dotenv.config();
 
+// Initialize tracing
+tracing;
+
+// Create main application
 const app = express();
-const port = process.env.PORT || 5000;
+const port = process.env.COSMOS_API_PORT || 4000;
 
-const allowedOrigins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(',')
-  : ['http://localhost:5173', 'http://localhost:5174'];
+// Initialize services
+const cosmosAPIService = new CosmosAPIService();
+const complianceOrchestrator = new ComplianceOrchestrator();
+const complianceDashboard = new ComplianceDashboard(complianceOrchestrator);
 
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV !== 'production') {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true
-}));
+// Graceful shutdown handling
+async function gracefulShutdown(signal: string) {
+  logger.info(`Received ${signal}, shutting down gracefully...`);
 
-// Security headers with Helmet
-app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
-      scriptSrc: ["'self'"],
-      imgSrc: ["'self'", "data:", "https:"],
-    },
-  },
-  crossOriginEmbedderPolicy: false,
-}));
+  try {
+    // Stop compliance orchestrator
+    await complianceOrchestrator.stop();
 
-app.use(express.json({ limit: '10kb' })); // Limit body size
+    // Stop microservices
+    await serviceOrchestrator.stopServices();
 
-// Response wrapper utility
+    // Close Service Bus
+    await serviceBusClient.close();
+
+    // Close Cosmos DB connections
+    await cosmosAPIService.close();
+
+    logger.info('All services shut down successfully');
+    process.exit(0);
+  } catch (error) {
+    logger.error('Error during shutdown:', error);
+    process.exit(1);
+  }
+}
+
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  logger.error('Uncaught Exception:', error);
+  metrics.recordMetric('uncaught_exception', 1, 'counter');
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  metrics.recordMetric('unhandled_rejection', 1, 'counter');
+  process.exit(1);
+});
+
+// Performance monitoring middleware
 app.use((req, res, next) => {
-  res.success = (data, message = 'Success') => {
-    res.json({ success: true, message, data });
-  };
+  const startTime = Date.now();
+  const correlationId = req.headers['x-correlation-id'] as string || `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+  // Add correlation ID
+  req.correlationId = correlationId;
+  res.setHeader('x-correlation-id', correlationId);
+
+  // Start span for tracing
+  const span = tracing.startSpan(`${req.method} ${req.path}`, {
+    attributes: {
+      'http.method': req.method,
+      'http.url': req.originalUrl,
+      'http.user_agent': req.headers['user-agent'],
+      'correlation.id': correlationId
+    }
+  });
+
+  res.on('finish', () => {
+    const duration = Date.now() - startTime;
+
+    // Record metrics
+    metrics.incrementCounter('http_requests_total', {
+      method: req.method,
+      status: res.statusCode.toString(),
+      path: req.path
+    });
+
+    metrics.recordHistogram('http_request_duration', duration, {
+      method: req.method,
+      path: req.path
+    });
+
+    // End tracing span
+    span.setAttributes({
+      'http.status_code': res.statusCode,
+      'http.duration_ms': duration
+    });
+    span.end();
+
+    // Log slow requests
+    if (duration > 200) {
+      logger.warn('Slow request detected', {
+        method: req.method,
+        path: req.path,
+        statusCode: res.statusCode,
+        duration,
+        correlationId
+      });
+    }
+  });
+
   next();
 });
 
-// Health check with dependency status for 50K user scalability
-app.get('/api/health', async (req, res) => {
-  const health: any = {
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-  };
-
+// Health check endpoint
+app.get('/health', async (req, res) => {
   try {
-    const { db } = await import('./db');
-    db.exec('SELECT 1');
-    health.database = { status: 'connected' };
-  } catch (error: any) {
-    health.database = { status: 'error', message: error.message };
-  }
+    const startTime = Date.now();
 
-  res.status(health.database?.status === 'connected' ? 200 : 503).json(health);
-});
+    // Check Cosmos DB connectivity
+    const cosmosHealth = await cosmosAPIService.getPerformanceMetrics();
 
-// ... Existing routes ...
-import apiRoutes from './routes';
-import authRoutes from './authRoutes';
-import coachRoutes from './coachRoutes';
-import paymentRoutes from './paymentRoutes';
-import exportRoutes from './exportRoutes';
-import adminRoutes from './adminRoutes';
-import tokenRoutes from './tokenRoutes';
-import scholarshipRoutes from './scholarshipRoutes';
-import rankingRoutes from './rankingRoutes';
-import originalRoutes from './originalRoutes';
-import eventRoutes from './eventRoutes';
-import supportRoutes from './supportRoutes';
-import agentOrchestrator from './agents/index.js';
-import path from 'path';
-import { fileURLToPath } from 'url';
+    // Check compliance orchestrator status
+    const complianceStatus = complianceOrchestrator.getStatus();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+    // Check overall system health
+    const totalLatency = Date.now() - startTime;
+    const healthy = totalLatency < 100; // Sub-100ms health check
 
-app.use('/api', apiRoutes);
-app.use('/api/original', originalRoutes);
-app.use('/auth', authRoutes);
-app.use('/coach', coachRoutes);
-app.use('/payments', paymentRoutes);
-app.use('/export', exportRoutes);
-app.use('/admin', adminRoutes);
-app.use('/tokens', tokenRoutes);
-app.use('/scholarships', scholarshipRoutes);
-app.use('/rankings', rankingRoutes);
-app.use('/events', eventRoutes);
-app.use('/support', supportRoutes);
-
-// Static files and SPA fallback
-const clientDistPath = path.resolve(__dirname, '../client/dist');
-app.use(express.static(clientDistPath));
-
-app.get('*', (req, res) => {
-  if (req.path.startsWith('/api') || req.path.startsWith('/auth') || req.path.startsWith('/coach') || req.path.startsWith('/support')) {
-    return res.status(404).json({ error: 'API route not found' });
-  }
-  res.sendFile(path.join(clientDistPath, 'index.html'), (err) => {
-    if (err) {
-      // If index.html doesn't exist, just send 404
-      res.status(404).send('Client not built or index.html missing');
-    }
-  });
-});
-
-app.listen(port, () => {
-  console.log(`\n🏈 H.E.R.S.365 Server ready on port ${port}`);
-  console.log(`   Athlete API: http://localhost:${port}/api/`);
-  console.log(`   Coach API:   http://localhost:${port}/coach/`);
-  console.log(`   Auth:        http://localhost:${port}/auth/\n`);
-});
-
-// ======================
-// WebSocket Server for Real-time Features
-// ======================
-import { WebSocketServer, WebSocket } from 'ws';
-
-const wss = new WebSocketServer({ port: Number(port) + 1 });
-
-interface WSClient {
-  ws: WebSocket;
-  userId?: string;
-  role?: string;
-}
-
-const clients = new Map<WebSocket, WSClient>();
-
-wss.on('connection', (ws) => {
-  console.log('🔌 New WebSocket connection');
-
-  ws.on('message', (data) => {
-    try {
-      const message = JSON.parse(data.toString());
-
-      switch (message.type) {
-        case 'auth':
-          // Client sending auth token
-          const clientData = clients.get(ws) || {};
-          clientData.userId = message.userId;
-          clientData.role = message.role;
-          clients.set(ws, clientData);
-          ws.send(JSON.stringify({ type: 'authenticated', userId: message.userId }));
-          break;
-
-        case 'subscribe':
-          // Subscribe to notifications
-          if (message.channel) {
-            console.log(`📡 Client subscribed to ${message.channel}`);
-          }
-          break;
-
-        case 'ping':
-          ws.send(JSON.stringify({ type: 'pong' }));
-          break;
+    res.status(healthy ? 200 : 503).json({
+      status: healthy ? 'healthy' : 'degraded',
+      timestamp: new Date().toISOString(),
+      latency: totalLatency,
+      version: process.env.npm_package_version || '1.0.0',
+      services: {
+        cosmos: {
+          status: 'ok',
+          metrics: cosmosHealth
+        },
+        compliance: {
+          status: 'ok',
+          components: complianceStatus.components
+        },
+        microservices: serviceOrchestrator.getAllServices().length
+      },
+      compliance: {
+        frameworks: ['COPPA', 'FERPA', 'GDPR'],
+        monitoring: 'active',
+        lastCheck: new Date().toISOString()
       }
-    } catch (err) {
-      console.error('WebSocket message error:', err);
-    }
-  });
-
-  ws.on('close', () => {
-    console.log('🔌 WebSocket disconnected');
-    clients.delete(ws);
-  });
-
-  ws.on('error', (err) => {
-    console.error('WebSocket error:', err);
-    clients.delete(ws);
-  });
+    });
+  } catch (error) {
+    logger.error('Health check failed:', error);
+    res.status(503).json({
+      status: 'unhealthy',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
 });
 
-// Broadcast to all connected clients
-export function broadcast(channel: string, data: any) {
-  const message = JSON.stringify({ channel, data, timestamp: Date.now() });
-  clients.forEach((client) => {
-    if (client.ws.readyState === WebSocket.OPEN) {
-      client.ws.send(message);
+// Metrics endpoint
+app.get('/metrics', (req, res) => {
+  res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+  res.send(metrics.exportPrometheus());
+});
+
+// Mount Cosmos DB API service
+app.use('/api/v1', cosmosAPIService.getApp());
+
+// Mount Compliance Orchestrator
+// Note: Compliance orchestrator has its own internal app, routes are handled within the orchestrator
+
+// Compliance Dashboard
+app.get('/dashboard/compliance', async (req, res) => {
+  try {
+    const dashboardData = await complianceDashboard.getDashboardData();
+    res.json(dashboardData);
+  } catch (error) {
+    logger.error('Dashboard error:', error);
+    res.status(500).json({ error: 'Failed to load compliance dashboard' });
+  }
+});
+
+// Main startup function
+async function startApplication() {
+  try {
+    logger.info('🚀 Starting HERS365 Enterprise Platform...');
+
+    // Validate environment
+    if (!process.env.AZURE_SERVICEBUS_CONNECTION_STRING && !process.env.AZURE_SERVICEBUS_NAMESPACE) {
+      logger.warn('Azure Service Bus not configured - running Cosmos DB only mode');
     }
-  });
-}
 
-// Send to specific user
-export function sendToUser(userId: string, channel: string, data: any) {
-  const message = JSON.stringify({ channel, data, timestamp: Date.now() });
-  clients.forEach((client) => {
-    if (client.userId === userId && client.ws.readyState === WebSocket.OPEN) {
-      client.ws.send(message);
+    if (!process.env.COSMOS_ENDPOINT || !process.env.COSMOS_KEY) {
+      throw new Error('Cosmos DB configuration missing. Set COSMOS_ENDPOINT and COSMOS_KEY');
     }
-  });
+
+    // Initialize Cosmos DB API service
+    logger.info('📊 Initializing Cosmos DB API service...');
+    await cosmosAPIService.initialize();
+
+    // Start microservices (if configured)
+    if (process.env.AZURE_SERVICEBUS_CONNECTION_STRING || process.env.AZURE_SERVICEBUS_NAMESPACE) {
+      logger.info('🔄 Starting microservices...');
+      await serviceOrchestrator.startServices();
+
+      logger.info('Available microservices:');
+      serviceOrchestrator.getAllServices().forEach(service => {
+        logger.info(`  - ${service['serviceName']} on port ${service['port']}`);
+      });
+    }
+
+    // Start compliance orchestrator
+    logger.info('📋 Starting compliance orchestrator...');
+    await complianceOrchestrator.start();
+
+    // Start main API server
+    app.listen(port, () => {
+      logger.info(`🌐 Main API server listening on port ${port}`);
+      logger.info(`📈 Performance target: Sub-200ms latency`);
+      logger.info(`🏗️  Architecture: Event-driven microservices with Cosmos DB`);
+      logger.info(`🔒 Compliance: COPPA, FERPA, GDPR enabled`);
+    });
+
+    // Log system information
+    logger.info('System information:', {
+      nodeVersion: process.version,
+      platform: process.platform,
+      arch: process.arch,
+      memory: process.memoryUsage(),
+      uptime: process.uptime()
+    });
+
+  } catch (error) {
+    logger.error('❌ Failed to start application:', error);
+    process.exit(1);
+  }
 }
 
-console.log(`📡 WebSocket server running on ws://localhost:${Number(port) + 1}`);
-
-// Start AI Agents for monitoring
-if (process.env.ENABLE_AI_AGENTS === "true" || process.env.NODE_ENV !== "production") {
-  console.log("🤖 Starting AI Agents for monitoring and bug detection...");
-  agentOrchestrator.startAll({ codePath: "./server" });
-}
+// Start the application
+startApplication();
