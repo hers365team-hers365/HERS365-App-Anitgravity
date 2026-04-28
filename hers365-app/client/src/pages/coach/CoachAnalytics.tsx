@@ -14,7 +14,7 @@ import {
   Heart,
   Activity
 } from 'lucide-react';
-import { CoachAnalytics as CoachAnalyticsType } from '../../types';
+import type { CoachAnalytics as CoachAnalyticsType } from '../../types';
 
 export function CoachAnalytics() {
   const [analytics, setAnalytics] = useState<CoachAnalyticsType | null>(null);

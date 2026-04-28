@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Filter, Eye, Star, MapPin, GraduationCap, Award, Users, Heart } from 'lucide-react';
-import { PlayerSearchResult } from '../../types';
+import type { PlayerSearchResult } from '../../types';
 
 interface SearchFilters {
   q?: string;

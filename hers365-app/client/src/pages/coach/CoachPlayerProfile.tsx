@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Eye, Heart, MessageSquare, Award, Star, Users, MapPin, GraduationCap, Ruler, Weight, Clock, Target } from 'lucide-react';
-import { PlayerProfile } from '../../types';
+import type { PlayerProfile } from '../../types';
 
 export function CoachPlayerProfile() {
   const { id } = useParams<{ id: string }>();

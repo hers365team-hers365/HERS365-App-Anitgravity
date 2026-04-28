@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Heart, Eye, Trash2, Star, Users, MapPin, GraduationCap, Award } from 'lucide-react';
-import { ScoutingBoardItem, PlayerSearchResult } from '../../types';
+import type { ScoutingBoardItem, PlayerSearchResult } from '../../types';
 
 const TIERS = [
   { id: 'top-target', label: 'Top Targets', color: 'bg-red-600', description: 'Priority recruits' },

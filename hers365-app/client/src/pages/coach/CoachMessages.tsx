@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { MessageSquare, Send, Eye, Users, MapPin } from 'lucide-react';
-import { CoachMessage } from '../../types';
+import type { CoachMessage } from '../../types';
 
 export function CoachMessages() {
   const [messages, setMessages] = useState<any[]>([]);
