@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useRef } from 'react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Home, 
   Trophy, 
@@ -17,7 +17,15 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const SidebarItem = ({ icon: Icon, label, path, active, collapsed }: any) => (
+interface SidebarItemProps {
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  label: string;
+  path: string;
+  active: boolean;
+  collapsed: boolean;
+}
+
+const SidebarItem = ({ icon: Icon, label, path, active, collapsed }: SidebarItemProps) => (
   <Link to={path} className="block">
     <motion.div
       whileHover={{ scale: 1.02 }}
@@ -39,7 +47,33 @@ const SidebarItem = ({ icon: Icon, label, path, active, collapsed }: any) => (
 export const Layout = () => {
   const [collapsed, setCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const notificationsRef = useRef<HTMLDivElement>(null);
+  const accountRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
+        setNotificationsOpen(false);
+      }
+      if (accountRef.current && !accountRef.current.contains(event.target as Node)) {
+        setAccountOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const notifications = [
+    { id: 1, title: 'New Scout Interest', message: 'Coach Johnson viewed your profile', time: '2m ago', unread: true, action: '/messages' },
+    { id: 2, title: 'Training Reminder', message: 'Agility session starts in 30 minutes', time: '15m ago', unread: true, action: '/training' },
+    { id: 3, title: 'Rank Updated', message: 'You moved up to #42 in rankings', time: '1h ago', unread: false, action: '/rankings' },
+  ];
 
   const menuItems = [
     { icon: Home, label: 'Feed', path: '/' },
@@ -115,20 +149,137 @@ export const Layout = () => {
 
           <div className="flex items-center gap-4">
             <div className="relative">
-              <input 
-                type="text" 
-                placeholder="Search athletes, drills..." 
+              <input
+                type="text"
+                placeholder="Search athletes, drills..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && searchQuery.trim()) {
+                    navigate(`/recruiting?q=${encodeURIComponent(searchQuery.trim())}`);
+                  }
+                }}
                 className="hidden lg:block w-64 bg-white/5 border border-white/10 rounded-full px-4 py-2 text-sm focus:outline-none focus:border-brand-500/50 transition-all"
               />
             </div>
-            <button className="p-2 text-dark-300 hover:text-white transition-colors">
-              <Bell size={20} />
-            </button>
-            <button className="p-2 text-dark-300 hover:text-white transition-colors relative">
+            <div className="relative" ref={notificationsRef}>
+              <button
+                onClick={() => setNotificationsOpen(!notificationsOpen)}
+                className="p-2 text-dark-300 hover:text-white transition-colors relative"
+              >
+                <Bell size={20} />
+                {notifications.filter(n => n.unread).length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-accent rounded-full shadow-[0_0_10px_rgba(34,197,94,0.8)]" />
+                )}
+              </button>
+
+              {/* Notifications Dropdown */}
+              <AnimatePresence>
+                {notificationsOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    className="absolute top-full right-0 mt-2 w-80 bg-dark-800/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50"
+                  >
+                    <div className="p-4 border-b border-white/5">
+                      <h3 className="text-sm font-black uppercase tracking-widest text-white">Notifications</h3>
+                    </div>
+                    <div className="max-h-96 overflow-y-auto">
+                      {notifications.map((notification) => (
+                        <button
+                          key={notification.id}
+                          onClick={() => {
+                            setNotificationsOpen(false);
+                            navigate(notification.action);
+                          }}
+                          className="w-full p-4 border-b border-white/5 hover:bg-white/5 transition-colors text-left"
+                        >
+                          <div className="flex gap-3">
+                            <div className={`w-2 h-2 rounded-full flex-shrink-0 mt-2 ${notification.unread ? 'bg-accent' : 'bg-dark-600'}`} />
+                            <div className="flex-1 min-w-0">
+                              <h4 className="text-sm font-bold text-white">{notification.title}</h4>
+                              <p className="text-xs text-dark-300 mt-1">{notification.message}</p>
+                              <p className="text-[10px] text-dark-500 font-bold uppercase tracking-widest mt-2">{notification.time}</p>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="p-4">
+                      <button
+                        onClick={() => {
+                          setNotificationsOpen(false);
+                          navigate('/settings'); // Navigate to settings where notifications can be managed
+                        }}
+                        className="w-full text-center text-xs font-black uppercase tracking-widest text-brand-400 hover:text-brand-300 transition-colors"
+                      >
+                        View All
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+            <button
+              onClick={() => navigate('/messages')}
+              className="p-2 text-dark-300 hover:text-white transition-colors relative"
+            >
               <MessageSquare size={20} />
               <span className="absolute top-1 right-1 w-2 h-2 bg-brand-500 rounded-full"></span>
             </button>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-400 to-accent shadow-lg shadow-brand-500/20 cursor-pointer"></div>
+            <div className="relative" ref={accountRef}>
+              <button
+                onClick={() => setAccountOpen(!accountOpen)}
+                className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-400 to-accent shadow-lg shadow-brand-500/20 cursor-pointer"
+              />
+              {/* Account Dropdown */}
+              <AnimatePresence>
+                {accountOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    className="absolute top-full right-0 mt-2 w-64 bg-dark-800/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50"
+                  >
+                    <div className="p-4 border-b border-white/5">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-400 to-accent shadow-lg shadow-brand-500/20" />
+                        <div>
+                          <p className="text-sm font-bold text-white">Sarah Johnson</p>
+                          <p className="text-xs text-accent font-bold uppercase tracking-widest">Premium Athlete</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-2">
+                      <button
+                        onClick={() => navigate('/profile')}
+                        className="w-full text-left px-4 py-3 text-sm text-dark-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
+                      >
+                        View Profile
+                      </button>
+                      <button
+                        onClick={() => navigate('/settings')}
+                        className="w-full text-left px-4 py-3 text-sm text-dark-300 hover:text-white hover:bg-white/5 rounded-xl transition-colors"
+                      >
+                        Settings
+                      </button>
+                      <button
+                        onClick={() => {
+                          // Clear local storage and redirect to auth
+                          localStorage.removeItem('user');
+                          localStorage.removeItem('token');
+                          navigate('/auth');
+                        }}
+                        className="w-full text-left px-4 py-3 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-colors"
+                      >
+                        Sign Out
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </header>
 

@@ -10,7 +10,8 @@ const pool = new Pool({
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 10000,
 });
-export const db = drizzle(pool, { schema: require('./schema').schema });
+import * as schema from './schema';
+export const db = drizzle(pool, { schema });
 // Export for use in routes
 export { pool };
 //# sourceMappingURL=db.postgres.js.map

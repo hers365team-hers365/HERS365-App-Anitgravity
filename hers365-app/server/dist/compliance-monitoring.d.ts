@@ -11,7 +11,7 @@ export declare class ComplianceMonitor {
     private serviceBusClient;
     private requirements;
     private monitoringInterval;
-    constructor(cosmosClient: OptimizedCosmosClient, serviceBusClient: ServiceBusClient);
+    constructor(cosmosClient: OptimizedCosmosClient, serviceBusClient: ServiceBusClient | undefined);
     /**
      * Start automated compliance monitoring
      */

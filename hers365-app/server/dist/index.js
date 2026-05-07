@@ -6,18 +6,30 @@
  */
 import dotenv from 'dotenv';
 import express from 'express';
+import session from 'express-session';
 import { serviceOrchestrator } from './microservices';
 import { serviceBusClient } from './service-bus';
 import { CosmosAPIService } from './cosmos-api';
 import { ComplianceOrchestrator, ComplianceDashboard } from './compliance-orchestrator';
 import { tracing, metrics } from './observability';
 import { logger } from './logger';
+import { authRouter } from './auth';
 dotenv.config();
 // Initialize tracing
 tracing;
 // Create main application
 const app = express();
 const port = process.env.COSMOS_API_PORT || 4000;
+// Session configuration for Passport
+app.use(session({
+    secret: process.env.SESSION_SECRET || 'your-secret-key',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
+}));
 // Initialize services
 const cosmosAPIService = new CosmosAPIService();
 const complianceOrchestrator = new ComplianceOrchestrator();
@@ -51,7 +63,7 @@ process.on('uncaughtException', (error) => {
     process.exit(1);
 });
 process.on('unhandledRejection', (reason, promise) => {
-    logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+    logger.error('Unhandled Rejection', reason instanceof Error ? reason : { reason });
     metrics.recordMetric('unhandled_rejection', 1, 'counter');
     process.exit(1);
 });
@@ -149,6 +161,8 @@ app.get('/metrics', (req, res) => {
     res.setHeader('Content-Type', 'text/plain; charset=utf-8');
     res.send(metrics.exportPrometheus());
 });
+// Mount authentication routes
+app.use('/api/auth', authRouter);
 // Mount Cosmos DB API service
 app.use('/api/v1', cosmosAPIService.getApp());
 // Mount Compliance Orchestrator
@@ -172,13 +186,20 @@ async function startApplication() {
         if (!process.env.AZURE_SERVICEBUS_CONNECTION_STRING && !process.env.AZURE_SERVICEBUS_NAMESPACE) {
             logger.warn('⚠️ Azure Service Bus not configured - running in local mode');
         }
-        if (!process.env.COSMOS_ENDPOINT || !process.env.COSMOS_KEY) {
-            logger.warn('⚠️ Cosmos DB configuration missing - running in limited local mode');
+        const isMockCosmos = process.env.COSMOS_ENDPOINT?.includes('preview-mock') ||
+            process.env.COSMOS_KEY === 'preview-mock-key';
+        if (!process.env.COSMOS_ENDPOINT || !process.env.COSMOS_KEY || isMockCosmos) {
+            logger.warn('⚠️ Cosmos DB configuration missing or mock - running in limited local mode');
         }
         else {
             // Initialize Cosmos DB API service
             logger.info('📊 Initializing Cosmos DB API service...');
-            await cosmosAPIService.initialize();
+            try {
+                await cosmosAPIService.initialize();
+            }
+            catch (error) {
+                logger.error('❌ Failed to initialize Cosmos DB API service. Running in limited mode.', error);
+            }
         }
         // Start microservices (if configured)
         if (process.env.AZURE_SERVICEBUS_CONNECTION_STRING || process.env.AZURE_SERVICEBUS_NAMESPACE) {

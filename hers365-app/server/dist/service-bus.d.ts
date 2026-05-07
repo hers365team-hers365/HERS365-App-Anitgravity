@@ -6,9 +6,10 @@ import { ServiceBusReceivedMessage, ServiceBusReceiver } from '@azure/service-bu
 import { DomainEvent } from './events';
 export declare class AzureServiceBusClient {
     private static instance;
-    private sbClient;
-    private adminClient;
+    private sbClient?;
+    private adminClient?;
     private config;
+    private disabled;
     private constructor();
     static getInstance(): AzureServiceBusClient;
     ensureInfrastructure(): Promise<void>;
@@ -20,19 +21,19 @@ export declare class AzureServiceBusClient {
     private storeEvent;
     markEventProcessed(eventId: string, success: boolean, errorMessage?: string): Promise<void>;
     incrementEventRetry(eventId: string): Promise<boolean>;
-    subscribeToQueue(queueName: string, messageHandler: (message: ServiceBusReceivedMessage) => Promise<void>, errorHandler?: (error: any) => Promise<void>): Promise<ServiceBusReceiver>;
-    subscribeToTopic(topicName: string, subscriptionName: string, messageHandler: (message: ServiceBusReceivedMessage) => Promise<void>, errorHandler?: (error: any) => Promise<void>): Promise<ServiceBusReceiver>;
+    subscribeToQueue(queueName: string, messageHandler: (message: ServiceBusReceivedMessage) => Promise<void>, errorHandler?: (error: any) => Promise<void>): Promise<ServiceBusReceiver | undefined>;
+    subscribeToTopic(topicName: string, subscriptionName: string, messageHandler: (message: ServiceBusReceivedMessage) => Promise<void>, errorHandler?: (error: any) => Promise<void>): Promise<ServiceBusReceiver | undefined>;
     private createSubscriptionIfNotExists;
     getQueueStats(queueName: string): Promise<{
         activeMessageCount: number;
         deadLetterMessageCount: number;
         scheduledMessageCount: number;
         transferMessageCount: number;
-    }>;
+    } | undefined>;
     getTopicStats(topicName: string): Promise<{
         subscriptionCount: number;
         scheduledMessageCount: number;
-    }>;
+    } | undefined>;
     close(): Promise<void>;
 }
 export declare class EventPublisher {

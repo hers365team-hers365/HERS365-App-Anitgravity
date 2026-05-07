@@ -5,8 +5,8 @@
  */
 export declare class ComplianceOrchestrator {
     private cosmosClient;
-    private serviceBusClient;
-    private blobService;
+    private serviceBusClient?;
+    private blobService?;
     private complianceService;
     private exportPipeline;
     private deletionPipeline;

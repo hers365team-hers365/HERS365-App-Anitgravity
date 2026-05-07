@@ -13,6 +13,21 @@ export const Auth = () => {
     navigate('/');
   };
 
+  const handleGoogleSignIn = () => {
+    // Redirect to Google OAuth endpoint
+    window.location.href = '/api/auth/google';
+  };
+
+  const handleGithubSignIn = () => {
+    // Redirect to GitHub OAuth endpoint
+    window.location.href = '/api/auth/github';
+  };
+
+  const handleForgotPassword = () => {
+    // Navigate to forgot password page or show modal
+    navigate('/forgot-password');
+  };
+
   return (
     <div className="min-h-screen bg-dark-900 flex items-center justify-center p-6 cyber-grid">
       {/* Background Decorative Elements */}
@@ -72,7 +87,7 @@ export const Auth = () => {
           <div className="space-y-2">
             <div className="flex items-center justify-between ml-1">
               <label className="text-xs font-black uppercase tracking-[0.2em] text-dark-400">Password</label>
-              {isLogin && <button type="button" className="text-[10px] uppercase font-black tracking-widest text-brand-500 hover:text-brand-400 transition-colors">Forgot?</button>}
+              {isLogin && <button type="button" onClick={handleForgotPassword} className="text-[10px] uppercase font-black tracking-widest text-brand-500 hover:text-brand-400 transition-colors">Forgot?</button>}
             </div>
             <div className="relative group">
               <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-dark-400 group-focus-within:text-brand-500 transition-colors" size={20} />
@@ -99,11 +114,11 @@ export const Auth = () => {
           </div>
 
           <div className="grid grid-cols-2 gap-4 mt-6">
-            <button className="flex items-center justify-center gap-3 py-4 glass-premium hover:bg-white/10 rounded-2xl text-dark-200 transition-all border border-white/5">
+            <button onClick={handleGoogleSignIn} className="flex items-center justify-center gap-3 py-4 glass-premium hover:bg-white/10 rounded-2xl text-dark-200 transition-all border border-white/5">
               <Chrome size={20} />
               <span className="text-xs font-bold uppercase tracking-widest">Google</span>
             </button>
-            <button className="flex items-center justify-center gap-3 py-4 glass-premium hover:bg-white/10 rounded-2xl text-dark-200 transition-all border border-white/5">
+            <button onClick={handleGithubSignIn} className="flex items-center justify-center gap-3 py-4 glass-premium hover:bg-white/10 rounded-2xl text-dark-200 transition-all border border-white/5">
               <Github size={20} />
               <span className="text-xs font-bold uppercase tracking-widest">GitHub</span>
             </button>

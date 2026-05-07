@@ -4,6 +4,7 @@
  * Optimized for sub-200ms latency, 50K+ concurrent users, and compliance
  */
 import { CosmosClient } from '@azure/cosmos';
+import { logger } from './logger';
 // ─── DATABASE SCHEMA DEFINITION ────────────────────────────────────────────────
 export const COSMOS_SCHEMA = {
     endpoint: process.env.COSMOS_ENDPOINT || '',
@@ -746,6 +747,12 @@ export class OptimizedCosmosClient {
         this.database = this.client.database(config.databaseName);
     }
     async initialize() {
+        const isMock = COSMOS_SCHEMA.endpoint.includes('preview-mock') ||
+            process.env.COSMOS_KEY === 'preview-mock-key';
+        if (isMock) {
+            logger.warn('⚠️ Cosmos DB mock credentials detected - skipping initialization');
+            return;
+        }
         // Create database if it doesn't exist
         await this.client.databases.createIfNotExists({
             id: COSMOS_SCHEMA.databaseName,

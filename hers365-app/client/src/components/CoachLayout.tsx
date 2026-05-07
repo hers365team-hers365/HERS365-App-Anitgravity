@@ -1,5 +1,5 @@
-import React from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   CircleGauge, 
   Users, 
@@ -12,10 +12,30 @@ import {
   Bell,
   UserCircle
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const CoachLayout = () => {
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const notificationsRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
+        setNotificationsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const coachNotifications = [
+    { id: 1, title: 'New Player Application', message: 'Sarah Johnson applied to your program', time: '5m ago', unread: true, action: '/coach/search' },
+    { id: 2, title: 'Scouting Report Ready', message: 'Analysis for upcoming tournament completed', time: '1h ago', unread: true, action: '/coach/board' },
+    { id: 3, title: 'Team Meeting', message: 'Scheduled for tomorrow at 3 PM', time: '2h ago', unread: false, action: '/coach/messages' },
+  ];
 
   const menuItems = [
     { icon: CircleGauge, label: 'Dashboard', path: '/coach/dashboard' },
@@ -94,10 +114,65 @@ export const CoachLayout = () => {
               <div className="w-2 h-2 bg-accent rounded-full animate-ping" />
               <span className="text-[10px] font-black text-accent uppercase tracking-widest">System Active</span>
             </div>
-            <button className="relative text-dark-300 hover:text-white transition-colors">
-              <Bell size={20} />
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-accent rounded-full shadow-[0_0_10px_rgba(34,197,94,0.8)]" />
-            </button>
+            <div className="relative" ref={notificationsRef}>
+              <button
+                onClick={() => setNotificationsOpen(!notificationsOpen)}
+                className="relative text-dark-300 hover:text-white transition-colors"
+              >
+                <Bell size={20} />
+                {coachNotifications.filter(n => n.unread).length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-accent rounded-full shadow-[0_0_10px_rgba(34,197,94,0.8)]" />
+                )}
+              </button>
+
+              {/* Notifications Dropdown */}
+              <AnimatePresence>
+                {notificationsOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    className="absolute top-full right-0 mt-2 w-80 bg-dark-800/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl z-50"
+                  >
+                    <div className="p-4 border-b border-white/5">
+                      <h3 className="text-sm font-black uppercase tracking-widest text-white">Coach Notifications</h3>
+                    </div>
+                    <div className="max-h-96 overflow-y-auto">
+                      {coachNotifications.map((notification) => (
+                        <button
+                          key={notification.id}
+                          onClick={() => {
+                            setNotificationsOpen(false);
+                            navigate(notification.action);
+                          }}
+                          className="w-full p-4 border-b border-white/5 hover:bg-white/5 transition-colors text-left"
+                        >
+                          <div className="flex gap-3">
+                            <div className={`w-2 h-2 rounded-full flex-shrink-0 mt-2 ${notification.unread ? 'bg-accent' : 'bg-dark-600'}`} />
+                            <div className="flex-1 min-w-0">
+                              <h4 className="text-sm font-bold text-white">{notification.title}</h4>
+                              <p className="text-xs text-dark-300 mt-1">{notification.message}</p>
+                              <p className="text-[10px] text-dark-500 font-bold uppercase tracking-widest mt-2">{notification.time}</p>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                    <div className="p-4">
+                      <button
+                        onClick={() => {
+                          setNotificationsOpen(false);
+                          navigate('/coach/settings'); // Navigate to coach settings
+                        }}
+                        className="w-full text-center text-xs font-black uppercase tracking-widest text-accent hover:text-accent/80 transition-colors"
+                      >
+                        View All
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
           </div>
         </header>
 

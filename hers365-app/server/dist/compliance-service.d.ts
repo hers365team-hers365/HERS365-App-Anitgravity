@@ -11,7 +11,7 @@ export declare class ComplianceService {
     private cosmosClient;
     private serviceBusClient;
     private auditChain;
-    constructor(cosmosClient: OptimizedCosmosClient, serviceBusClient: ServiceBusClient);
+    constructor(cosmosClient: OptimizedCosmosClient, serviceBusClient: ServiceBusClient | undefined);
     private setupMiddleware;
     private setupRoutes;
     getApp(): express.Application;

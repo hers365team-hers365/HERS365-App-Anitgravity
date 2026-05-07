@@ -7,12 +7,14 @@
 
 import dotenv from 'dotenv';
 import express from 'express';
+import session from 'express-session';
 import { serviceOrchestrator } from './microservices';
 import { serviceBusClient } from './service-bus';
 import { CosmosAPIService } from './cosmos-api';
 import { ComplianceOrchestrator, ComplianceDashboard } from './compliance-orchestrator';
 import { tracing, metrics } from './observability';
 import { logger } from './logger';
+import { authRouter } from './auth';
 
 dotenv.config();
 
@@ -22,6 +24,17 @@ tracing;
 // Create main application
 const app = express();
 const port = process.env.COSMOS_API_PORT || 4000;
+
+// Session configuration for Passport
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
 
 // Initialize services
 const cosmosAPIService = new CosmosAPIService();
@@ -176,6 +189,9 @@ app.get('/metrics', (req, res) => {
   res.setHeader('Content-Type', 'text/plain; charset=utf-8');
   res.send(metrics.exportPrometheus());
 });
+
+// Mount authentication routes
+app.use('/api/auth', authRouter);
 
 // Mount Cosmos DB API service
 app.use('/api/v1', cosmosAPIService.getApp());
