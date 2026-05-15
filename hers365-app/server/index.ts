@@ -210,6 +210,19 @@ app.get('/dashboard/compliance', async (req, res) => {
   }
 });
 
+// Additional API Routes
+import { rankingsRouter } from './api/rankings';
+import { athletesRouter } from './api/athletes';
+import { messagesRouter } from './api/messages';
+import { trainingRouter } from './api/training';
+import { usersRouter } from './api/users';
+
+app.use('/api/rankings', rankingsRouter);
+app.use('/api/athletes', athletesRouter);
+app.use('/api/messages', messagesRouter);
+app.use('/api/training', trainingRouter);
+app.use('/api/users', usersRouter);
+
 // Main startup function
 async function startApplication() {
   try {
