@@ -32,7 +32,7 @@ const SidebarItem = ({ icon: Icon, label, path, active, collapsed }: SidebarItem
       whileTap={{ scale: 0.98 }}
       className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 ${
         active 
-          ? 'bg-brand-500 text-white shadow-lg shadow-brand-500/20' 
+          ? 'bg-primary-500 text-white shadow-lg shadow-[0_0_20px_0_rgba(232,93,75,0.2)]' 
           : 'text-dark-300 hover:bg-white/5 hover:text-white'
       }`}
     >
@@ -88,11 +88,11 @@ export const Layout = () => {
   return (
     <div className="flex h-screen bg-dark-900 text-white overflow-hidden cyber-grid">
       {/* Sidebar - Desktop */}
-      <motion.aside
-        initial={false}
-        animate={{ width: collapsed ? 80 : 280 }}
-        className="hidden md:flex flex-col bg-dark-800/50 backdrop-blur-xl border-r border-white/5 p-4 relative z-20"
-      >
+       <motion.aside
+         initial={false}
+         animate={{ width: collapsed ? 80 : 280 }}
+         className="hidden md:flex flex-col bg-black/50 backdrop-blur-xl border-r border-white/5 p-4 relative z-20"
+       >
         <div className="flex items-center gap-3 px-2 mb-10">
           <div className="w-10 h-10 bg-brand-500 rounded-lg flex items-center justify-center shadow-lg shadow-brand-500/40">
             <Zap className="text-white fill-current" size={24} />
@@ -133,8 +133,8 @@ export const Layout = () => {
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Header */}
-        <header className="h-20 bg-dark-900/50 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-6 z-10">
+         {/* Header */}
+         <header className="h-20 bg-black/50 backdrop-blur-md border-b border-white/5 flex items-center justify-between px-6 z-10">
           <div className="flex items-center gap-4">
             <button 
               onClick={() => setMobileMenuOpen(true)}
@@ -231,7 +231,7 @@ export const Layout = () => {
             <div className="relative" ref={accountRef}>
               <button
                 onClick={() => setAccountOpen(!accountOpen)}
-                className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-400 to-accent shadow-lg shadow-brand-500/20 cursor-pointer"
+                className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-400 to-accentBlue-500 shadow-lg shadow-[0_0_20px_0_rgba(232,93,75,0.2)] cursor-pointer"
               />
               {/* Account Dropdown */}
               <AnimatePresence>
@@ -244,7 +244,7 @@ export const Layout = () => {
                   >
                     <div className="p-4 border-b border-white/5">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-400 to-accent shadow-lg shadow-brand-500/20" />
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-400 to-accentBlue-500 shadow-lg shadow-[0_0_20px_0_rgba(232,93,75,0.2)]" />
                         <div>
                           <p className="text-sm font-bold text-white">Sarah Johnson</p>
                           <p className="text-xs text-accent font-bold uppercase tracking-widest">Premium Athlete</p>

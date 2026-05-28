@@ -1,8 +1,9 @@
 import express from 'express';
 
-const passport = require('passport');
-const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const GitHubStrategy = require('passport-github2').Strategy;
+import passport from 'passport';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import { Strategy as GitHubStrategy } from 'passport-github2';
+
 
 // Configure Passport Google Strategy
 passport.use(new GoogleStrategy({
